@@ -1,0 +1,50 @@
+[project]
+name = "mthd"
+description = "Git-based experiment tracking with semantic metadata."
+authors = [
+    { name = "Rory Byrne", email = "rory@rory.bio" }
+]
+requires-python = ">=3.9"
+dependencies = []
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering",
+    "Intended Audience :: Developers",
+    'Intended Audience :: Information Technology',
+    "Typing :: Typed",
+]
+license = "MIT"
+readme = "README.md"
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/flywhl/mthd"
+Repository = "https://github.com/flywhl/mthd"
+Documentation = "https://github.com/flywhl/mthd#readme"
+"Bug Tracker" = "https://github.com/flywhl/mthd/issues"
+
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.uv]
+dev-dependencies = [
+    "coverage>=7.6.9",
+    "pre-commit>=4.0.1",
+    "pyright>=1.1.390",
+    "pytest-mock>=3.14.0",
+    "pytest>=8.3.4",
+    "ruff>=0.8.2",
+]
