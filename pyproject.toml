@@ -4,14 +4,17 @@ description = "Git-based experiment tracking with semantic metadata."
 authors = [
     { name = "Rory Byrne", email = "rory@rory.bio" }
 ]
-requires-python = ">=3.9"
-dependencies = []
+requires-python = ">=3.10"
+dependencies = [
+    "anot>=0.0.3",
+    "dishka>=1.4.2",
+    "pydantic>=2.10.5",
+]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
