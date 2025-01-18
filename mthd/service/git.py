@@ -1,13 +1,16 @@
 import git
 
-from mthd.domain.commit import CommitMessage, StageStrategy
+from mthd.domain.experiment import ExperimentState
+from mthd.domain.git import Commit, StageStrategy
 
 
 class GitService:
     def __init__(self, repo: git.Repo):
         self._repo = repo
 
-    def stage_and_commit(self, message: CommitMessage):
+    def get_all_commits(self) -> list[Commit]: ...
+
+    def stage_and_commit(self, state: ExperimentState):
         """Stage all changes and create a commit with the given message.
 
         Args:
@@ -17,7 +20,7 @@ class GitService:
         self._repo.git.add(A=True)
 
         # Create commit with formatted message
-        self._repo.index.commit(message.format())
+        self._repo.index.commit(state.as_commit_message())
 
     def should_commit(self, strategy: StageStrategy) -> bool:
         """Determine if the repo state can be staged and committed
