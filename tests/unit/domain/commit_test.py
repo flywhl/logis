@@ -11,7 +11,7 @@ def test_commitmessage_format_success():
 
     msg = CommitMessage(
         summary="test",
-        hyperparameters=Hypers(a=1, b=2.0, c="3"),
+        hyperparameters=Hypers(a=1, b=2.0, c="3").model_dump(),
     )
 
     print(msg.format())
