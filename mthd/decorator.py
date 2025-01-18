@@ -7,8 +7,6 @@ from rich.padding import Padding
 
 from mthd.domain.commit import CommitMessage, StageStrategy
 from mthd.error import MthdError
-from mthd.service.git import GitService
-from mthd.util.di import DI
 
 
 def commit(
@@ -24,13 +22,13 @@ def commit(
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs):
-            di = DI()
+            # di = DI()
             hyperparameters = cast(BaseModel, kwargs.get(hypers, None))
             if not hyperparameters:
                 raise MthdError(
                     "Hyperparameters must be provided in the function call."
                 )
-            git_service = di[GitService]
+            # git_service = di[GitService]
             # codebase_service = di[CodebaseService]
 
             # Generate commit message
