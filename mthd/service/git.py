@@ -1,24 +1,29 @@
 import git
-from mthd.domain.commit import CommitMessage
+
+from mthd.domain.commit import CommitMessage, StageStrategy
 
 
 class GitService:
-    def __init__(self):
-        self.repo = git.Repo(".")
-        
+    def __init__(self, repo: git.Repo):
+        self._repo = repo
+
     def stage_and_commit(self, message: CommitMessage):
         """Stage all changes and create a commit with the given message.
-        
+
         Args:
             message: CommitMessage object containing commit metadata
         """
         # Stage all changes
-        self.repo.git.add(A=True)
-        
+        self._repo.git.add(A=True)
+
         # Create commit with formatted message
-        commit_text = (
-            f"{message.summary}\n\n"
-            f"Hyperparameters:\n{message.hyperparameters.model_dump_json(indent=2)}\n\n"
-            f"Annotations:\n{sorted(message.annotations)}"
-        )
-        self.repo.index.commit(commit_text)
+        self._repo.index.commit(message.format())
+
+    def should_commit(self, strategy: StageStrategy) -> bool:
+        """Determine if the repo state can be staged and committed
+
+        Returns:
+            @todo: decide if the unstaged files are suitable for committing
+        """
+        if strategy == StageStrategy.ALL:
+            return True

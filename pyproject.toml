@@ -6,9 +6,11 @@ authors = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-    "anot>=0.0.3",
+    "anot>=0.0.6",
     "dishka>=1.4.2",
+    "gitpython>=3.1.44",
     "pydantic>=2.10.5",
+    "rich>=13.9.4",
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -51,3 +53,14 @@ dev-dependencies = [
     "pytest>=8.3.4",
     "ruff>=0.8.2",
 ]
+
+[tool.ruff]
+src = ["mthd"]
+
+[tool.ruff.lint]
+extend-select = ["I"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["mthd"]
+relative-imports-order = "closest-to-furthest"
+lines-between-types = 1
