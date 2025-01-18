@@ -8,7 +8,22 @@ class GitService:
     def __init__(self, repo: git.Repo):
         self._repo = repo
 
-    def get_all_commits(self) -> list[Commit]: ...
+    def get_all_commits(self) -> list[Commit]:
+        """Get all commits in the repository.
+        
+        Returns:
+            List of Commit objects representing the git history
+        """
+        commits = []
+        for commit in self._repo.iter_commits():
+            commits.append(
+                Commit(
+                    sha=commit.hexsha,
+                    message=commit.message,
+                    date=commit.committed_datetime
+                )
+            )
+        return commits
 
     def stage_and_commit(self, state: ExperimentState):
         """Stage all changes and create a commit with the given message.
