@@ -1,27 +1,37 @@
-import json
+from datetime import datetime
+from typing import Optional
 
 from mthd.config import METADATA_SEPARATOR
-from mthd.domain.git import CommitKind
 from mthd.util.model import Model
 
 
-class ExperimentState(Model):
+class ExperimentResult(Model):
+    """Represents the outcome of an experiment run"""
+    metrics: dict
+    artifacts: Optional[dict] = None  # Any generated files/data
+
+
+class ExperimentRun(Model):
+    """Represents a single run of an experiment"""
     hyperparameters: dict
-    # annotations: set[Annotation]  # @todo: fix anot
+    metrics: Optional[dict] = None  # Results/metrics from the run
+    annotations: Optional[dict] = None  # Code annotations/metadata
+    timestamp: datetime = datetime.now()
+    
+    def record_results(self, metrics: dict, artifacts: Optional[dict] = None) -> None:
+        """Record the results of this experiment run"""
+        self.metrics = metrics
+        if artifacts:
+            self.artifacts = artifacts
 
     def as_commit_message(self) -> str:
-        return f"{self.summary}\n\n{self.body}\n\n{METADATA_SEPARATOR}\n\n{self.model_dump_json(indent=2, exclude={'summary'})}"
-
-    @property
-    def summary(self) -> str:
-        return f"{CommitKind.EXP.value}: TODO"
-
-    @property
-    def body(self) -> str:
-        return "TODO"
+        """Formats the experiment run as a semantic commit message"""
+        from mthd.domain.git import CommitMessage
+        return CommitMessage.from_experiment(self).format()
 
     @staticmethod
-    def parse(message: str) -> "ExperimentState":
-        # @todo: test this
-        metadata = message.split(METADATA_SEPARATOR)[1].strip()
-        return ExperimentState(hyperparameters=json.loads(metadata))
+    def parse(message: str) -> "ExperimentRun":
+        """Parse an experiment run from a commit message"""
+        from mthd.domain.git import CommitMessage
+        commit_msg = CommitMessage.parse(message)
+        return ExperimentRun(**commit_msg.metadata)
