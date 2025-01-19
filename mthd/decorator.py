@@ -5,8 +5,11 @@ from pydantic import BaseModel
 from rich.console import Console
 from rich.padding import Padding
 
-from mthd.domain.commit import CommitMessage, StageStrategy
+from mthd.domain.experiment import ExperimentState
+from mthd.domain.git import StageStrategy
 from mthd.error import MthdError
+from mthd.service.git import GitService
+from mthd.util.di import DI
 
 
 def commit(
@@ -22,18 +25,15 @@ def commit(
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs):
-            # di = DI()
+            di = DI()
             hyperparameters = cast(BaseModel, kwargs.get(hypers, None))
             if not hyperparameters:
-                raise MthdError(
-                    "Hyperparameters must be provided in the function call."
-                )
-            # git_service = di[GitService]
+                raise MthdError("Hyperparameters must be provided in the function call.")
+            git_service = di[GitService]
             # codebase_service = di[CodebaseService]
 
             # Generate commit message
-            commit_msg = CommitMessage(
-                summary="exp: foo bar baz",
+            exp_state = ExperimentState(
                 hyperparameters=hyperparameters.model_dump(),
                 # annotations=codebase_service.get_all_annotations(),
             )
@@ -46,11 +46,9 @@ def commit(
             # Commit changes
             console = Console()
             console.print("Generating commit with message:\n")
-            console.print(
-                Padding(commit_msg.format(), pad=(0, 0, 0, 4))
-            )  # Indent by 4 spaces.
-            # if git_service.should_commit(strategy):
-            #     git_service.stage_and_commit(commit_msg)
+            console.print(Padding(exp_state.as_commit_message(), pad=(0, 0, 0, 4)))  # Indent by 4 spaces.
+            if git_service.should_commit(strategy):
+                git_service.stage_and_commit(exp_state.as_commit_message())
 
             return result
 

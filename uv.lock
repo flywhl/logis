@@ -101,6 +101,18 @@ wheels = [
 ]
 
 [[package]]
+name = "click"
+version = "8.1.8"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b9/2e/0090cbf739cee7d23781ad4b89a9894a41538e4fcf4c31dcdd705b78eb8b/click-8.1.8.tar.gz", hash = "sha256:ed53c9d8990d83c2a27deae68e4ee337473f6330c040a31d4225c9574d16096a", size = 226593 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7e/d4/7ebdbd03970677812aac39c869717059dbb71a4cfc033ca6e5221787892c/click-8.1.8-py3-none-any.whl", hash = "sha256:63c132bbbed01578a06712a2d1f497bb62d9c1c0d329b7903a866228027263b2", size = 98188 },
+]
+
+[[package]]
 name = "colorama"
 version = "0.4.6"
 source = { registry = "https://pypi.org/simple" }
@@ -250,6 +262,15 @@ wheels = [
 ]
 
 [[package]]
+name = "jmespath"
+version = "1.0.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/00/2a/e867e8531cf3e36b41201936b7fa7ba7b5702dbef42922193f05c8976cd6/jmespath-1.0.1.tar.gz", hash = "sha256:90261b206d6defd58fdd5e85f478bf633a2901798906be2ad389150c5c60edbe", size = 25843 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/31/b4/b9b800c45527aadd64d5b442f9b932b00648617eb5d63d2c7a6587b7cafc/jmespath-1.0.1-py3-none-any.whl", hash = "sha256:02e2e4cc71b5bcab88332eebf907519190dd9e6e82107fa7f83b1003a6252980", size = 20256 },
+]
+
+[[package]]
 name = "markdown-it-py"
 version = "3.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -295,12 +316,14 @@ wheels = [
 
 [[package]]
 name = "mthd"
-version = "0.0.3.dev4+g0bdb96d.d20250118"
+version = "0.0.3.dev1+g673bac1.d20250118"
 source = { editable = "." }
 dependencies = [
     { name = "anot" },
+    { name = "click" },
     { name = "dishka" },
     { name = "gitpython" },
+    { name = "jmespath" },
     { name = "pydantic" },
     { name = "rich" },
 ]
@@ -318,8 +341,10 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "anot", specifier = ">=0.0.6" },
+    { name = "click", specifier = ">=8.1.8" },
     { name = "dishka", specifier = ">=1.4.2" },
     { name = "gitpython", specifier = ">=3.1.44" },
+    { name = "jmespath", specifier = ">=1.0.1" },
     { name = "pydantic", specifier = ">=2.10.5" },
     { name = "rich", specifier = ">=13.9.4" },
 ]

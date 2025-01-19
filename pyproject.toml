@@ -7,8 +7,10 @@ authors = [
 requires-python = ">=3.10"
 dependencies = [
     "anot>=0.0.6",
+    "click>=8.1.8",
     "dishka>=1.4.2",
     "gitpython>=3.1.44",
+    "jmespath>=1.0.1",
     "pydantic>=2.10.5",
     "rich>=13.9.4",
 ]
@@ -37,6 +39,9 @@ Repository = "https://github.com/flywhl/mthd"
 Documentation = "https://github.com/flywhl/mthd#readme"
 "Bug Tracker" = "https://github.com/flywhl/mthd/issues"
 
+[project.scripts]
+mthd = "mthd.cli.app:start"
+
 [build-system]
 requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
@@ -56,6 +61,7 @@ dev-dependencies = [
 
 [tool.ruff]
 src = ["mthd"]
+line-length = 120
 
 [tool.ruff.lint]
 extend-select = ["I"]
