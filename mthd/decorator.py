@@ -5,7 +5,8 @@ from pydantic import BaseModel
 from rich.console import Console
 from rich.padding import Padding
 
-from mthd.domain.experiment import ExperimentState
+from mthd.domain.experiment import ExperimentRun, ExperimentCommit
+from mthd.domain.change_type import ChangeType
 from mthd.domain.git import StageStrategy
 from mthd.error import MthdError
 from mthd.service.git import GitService
@@ -33,9 +34,14 @@ def commit(
             # codebase_service = di[CodebaseService]
 
             # Generate commit message
-            exp_state = ExperimentState(
+            experiment = ExperimentRun(
                 hyperparameters=hyperparameters.model_dump(),
                 # annotations=codebase_service.get_all_annotations(),
+            )
+            commit = ExperimentCommit(
+                type=ChangeType.EXPERIMENT,
+                summary="experiment run",
+                experiment=experiment
             )
             # print(hyperparameters.model_dump_json(indent=2))
             # print(commit_msg.format())
@@ -46,9 +52,9 @@ def commit(
             # Commit changes
             console = Console()
             console.print("Generating commit with message:\n")
-            console.print(Padding(exp_state.as_commit_message(), pad=(0, 0, 0, 4)))  # Indent by 4 spaces.
+            console.print(Padding(commit.format_message(), pad=(0, 0, 0, 4)))  # Indent by 4 spaces.
             if git_service.should_commit(strategy):
-                git_service.stage_and_commit(exp_state.as_commit_message())
+                git_service.stage_and_commit(commit.format_message())
 
             return result
 
