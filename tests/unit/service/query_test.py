@@ -16,12 +16,12 @@ def git_service():
     commits = [
         Commit(
             sha="abc123",
-            message="exp: Test 1\n\n---\n\n{\"experiment\": \"test1\", \"metrics\": {\"accuracy\": 0.8, \"loss\": 0.2}}",
+            message='exp: Test 1\n\n---\n\n{"experiment": "test1", "metrics": {"accuracy": 0.8, "loss": 0.2}}',
             date=datetime(2024, 1, 1),
         ),
         Commit(
-            sha="def456", 
-            message="exp: Test 2\n\n---\n\n{\"experiment\": \"test2\", \"metrics\": {\"accuracy\": 0.9, \"loss\": 0.1}}",
+            sha="def456",
+            message='exp: Test 2\n\n---\n\n{"experiment": "test2", "metrics": {"accuracy": 0.9, "loss": 0.1}}',
             date=datetime(2024, 1, 2),
         ),
     ]
@@ -34,25 +34,18 @@ def query_service(git_service: GitService):
     return QueryService(git_service)
 
 
-@patch("mthd.domain.experiment.ExperimentRun.from_commit")
-def test_execute_query(mock_from_commit, query_service: QueryService):
+# @patch("mthd.domain.experiment.ExperimentRun.from_commit")
+def test_execute_query(query_service: QueryService):
     # Setup mock experiments
-    mock_from_commit.side_effect = [
-        ExperimentRun(
-            experiment="test1",
-            hyperparameters={},
-            metrics={"accuracy": 0.8, "loss": 0.2}
-        ),
-        ExperimentRun(
-            experiment="test2", 
-            hyperparameters={},
-            metrics={"accuracy": 0.9, "loss": 0.1}
-        ),
-    ]
+    # mock_from_commit.side_effect = [
+    #     ExperimentRun(experiment="test1", hyperparameters={}, metrics={"accuracy": 0.8, "loss": 0.2}),
+    #     ExperimentRun(experiment="test2", hyperparameters={}, metrics={"accuracy": 0.9, "loss": 0.1}),
+    # ]
 
     # Test query for high accuracy
     query = Query.where("metrics.accuracy", ">", 0.85)
     result = query_service.execute(query)
+    print(result)
 
     assert len(result.commits) == 1
     assert result.num_searched == 2
@@ -63,16 +56,8 @@ def test_execute_query(mock_from_commit, query_service: QueryService):
 def test_execute_simple_query(mock_from_commit, query_service: QueryService):
     # Setup mock experiments
     mock_from_commit.side_effect = [
-        ExperimentRun(
-            experiment="test1",
-            hyperparameters={},
-            metrics={"loss": 0.2}
-        ),
-        ExperimentRun(
-            experiment="test2",
-            hyperparameters={},
-            metrics={"loss": 0.1}
-        ),
+        ExperimentRun(experiment="test1", hyperparameters={}, metrics={"loss": 0.2}),
+        ExperimentRun(experiment="test2", hyperparameters={}, metrics={"loss": 0.1}),
     ]
 
     # Test simple query for low loss
@@ -86,16 +71,8 @@ def test_execute_simple_query(mock_from_commit, query_service: QueryService):
 def test_execute_query_with_limit(mock_from_commit, query_service: QueryService):
     # Setup mock experiments
     mock_from_commit.side_effect = [
-        ExperimentRun(
-            experiment="test1",
-            hyperparameters={},
-            metrics={"accuracy": 0.9}
-        ),
-        ExperimentRun(
-            experiment="test2",
-            hyperparameters={},
-            metrics={"accuracy": 0.95}
-        ),
+        ExperimentRun(experiment="test1", hyperparameters={}, metrics={"accuracy": 0.9}),
+        ExperimentRun(experiment="test2", hyperparameters={}, metrics={"accuracy": 0.95}),
     ]
 
     # Test query with limit
