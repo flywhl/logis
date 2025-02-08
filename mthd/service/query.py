@@ -1,6 +1,7 @@
 from typing import Optional
 
 from mthd.domain.experiment import ExperimentRun
+from mthd.domain.git import Commit
 from mthd.domain.query import Query, QueryResult, SimpleQueryOp, SimpleQueryValue
 from mthd.service.git import GitService
 
@@ -23,13 +24,16 @@ class QueryService:
         """
         # Get all commits with experimental metadata
         commits = self.git_service.get_all_commits()
+        commits_by_sha = {c.sha: c for c in commits}
         total = len(commits)
 
-        exp_commits = [ExperimentRun.parse(commit) for commit in commits]
+        exp_commits = [ExperimentRun.from_commit(commit) for commit in commits]
+        # print(exp_commits)
 
         # Compile and execute the JMESPath query
         jmespath_query = query.compile()
-        results = jmespath_query.search(exp_commits)
+        print(query)
+        results: list[Commit] = jmespath_query.search(commits)
 
         # Handle limit
         # @todo: sort by commit date?
