@@ -5,8 +5,7 @@ from pydantic import BaseModel
 from rich.console import Console
 from rich.padding import Padding
 
-from mthd.domain.experiment import ExperimentRun, ExperimentCommit
-from mthd.domain.change_type import ChangeType
+from mthd.domain.experiment import ExperimentRun
 from mthd.domain.git import StageStrategy
 from mthd.error import MthdError
 from mthd.service.git import GitService
@@ -15,7 +14,9 @@ from mthd.util.di import DI
 
 def commit(
     fn: Optional[Callable] = None,
+    *,
     hypers: str = "hypers",
+    template: str = "run {experiment}",
     strategy: StageStrategy = StageStrategy.ALL,
 ) -> Callable:
     """Decorator to auto-commit experimental code with scientific metadata.
@@ -27,6 +28,7 @@ def commit(
         @wraps(func)
         def wrapper(*args, **kwargs):
             di = DI()
+            # @todo: handle this better (eg. positional args)
             hyperparameters = cast(BaseModel, kwargs.get(hypers, None))
             if not hyperparameters:
                 raise MthdError("Hyperparameters must be provided in the function call.")
@@ -35,26 +37,22 @@ def commit(
 
             # Generate commit message
             experiment = ExperimentRun(
+                experiment=func.__name__,
                 hyperparameters=hyperparameters.model_dump(),
+                metrics={},
                 # annotations=codebase_service.get_all_annotations(),
             )
-            commit = ExperimentCommit(
-                type=ChangeType.EXPERIMENT,
-                summary="experiment run",
-                experiment=experiment
-            )
-            # print(hyperparameters.model_dump_json(indent=2))
-            # print(commit_msg.format())
+            message = experiment.as_commit_message(template=template)
 
             # Run experiment
             result = func(*args, **kwargs)
 
             # Commit changes
-            console = Console()
-            console.print("Generating commit with message:\n")
-            console.print(Padding(commit.format_message(), pad=(0, 0, 0, 4)))  # Indent by 4 spaces.
             if git_service.should_commit(strategy):
-                git_service.stage_and_commit(commit.format_message())
+                console = Console()
+                console.print("Generating commit with message:\n")
+                console.print(Padding(message.render(with_metadata=True), pad=(0, 0, 0, 4)))  # Indent by 4 spaces.
+                # git_service.stage_and_commit(message.render())
 
             return result
 
@@ -72,8 +70,14 @@ if __name__ == "__main__":
         b: float
         c: str
 
-    @commit(hypers="hypers")
+    class Metrics(BaseModel):
+        a: int
+        b: float
+        c: str
+
+    @commit(hypers="hypers", template="run {experiment} at {timestamp}")
     def test(hypers: Hyperparameters):
-        print("<Experiment goes here>\n")
+        print("\n<Experiment goes here>\n")
+        return Metrics(a=1, b=2.0, c="3")
 
     test(hypers=Hyperparameters(a=1, b=2.0, c="3"))

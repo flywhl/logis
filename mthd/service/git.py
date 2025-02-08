@@ -1,5 +1,8 @@
+from typing import Optional
+
 import git
 
+from mthd.domain.experiment import CommitKind
 from mthd.domain.git import Commit, StageStrategy
 
 
@@ -7,7 +10,7 @@ class GitService:
     def __init__(self, repo: git.Repo):
         self._repo = repo
 
-    def get_all_commits(self) -> list[Commit]:
+    def get_all_commits(self, kind: Optional[CommitKind] = None) -> list[Commit]:
         """Get all commits in the repository.
 
         Returns:
@@ -16,6 +19,9 @@ class GitService:
         commits = []
         for commit in self._repo.iter_commits():
             commits.append(Commit.from_git(commit))
+
+        if kind:
+            pass  # @todo: filter by kind
         return commits
 
     def stage_and_commit(self, message: str):

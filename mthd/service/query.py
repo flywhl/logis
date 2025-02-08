@@ -1,6 +1,6 @@
 from typing import Optional
 
-from mthd.domain.experiment import ExperimentState
+from mthd.domain.experiment import ExperimentRun
 from mthd.domain.query import Query, QueryResult, SimpleQueryOp, SimpleQueryValue
 from mthd.service.git import GitService
 
@@ -25,7 +25,7 @@ class QueryService:
         commits = self.git_service.get_all_commits()
         total = len(commits)
 
-        exp_commits = [ExperimentState.parse(commit) for commit in commits]
+        exp_commits = [ExperimentRun.parse(commit) for commit in commits]
 
         # Compile and execute the JMESPath query
         jmespath_query = query.compile()
@@ -58,4 +58,3 @@ class QueryService:
         """
         query = Query.where(f"message.metrics.{metric}", op, value)
         return self.execute(query, limit=limit)
-

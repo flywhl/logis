@@ -1,66 +1,113 @@
 import json
-from datetime import datetime
-from typing import Literal, Optional
+import logging
 
-from mthd.config import METADATA_SEPARATOR
-from mthd.domain.change_type import ChangeType
+from datetime import datetime
+from enum import StrEnum
+from typing import Any, Optional
+from uuid import uuid4
+
+from pydantic import UUID4, Field
+
+from mthd.config import BODY_METADATA_SEPARATOR, SUMMARY_BODY_SEPARATOR
+from mthd.domain.git import Commit
 from mthd.util.model import Model
+
+logger = logging.getLogger(__name__)
 
 
 class ExperimentRun(Model):
     """The core data from an experiment run"""
+
+    experiment: str
     hyperparameters: dict
-    metrics: Optional[dict] = None
+    metrics: dict
+    uuid: UUID4 = Field(default_factory=uuid4)
     artifacts: Optional[dict] = None  # Any generated files/data
     annotations: Optional[dict] = None
     timestamp: datetime = datetime.now()
 
+    def as_commit_message(self, template: str) -> "SemanticMessage":
+        """Convert this experiment run into a commit"""
+        return SemanticMessage(
+            kind=CommitKind.EXP,
+            summary=template.format(**self.model_dump(include={"experiment", "timestamp"})),
+            metadata=self.model_dump(mode="json"),
+        )
 
-class SemanticCommit(Model):
+    @staticmethod
+    def from_commit(commit: Commit) -> Optional["ExperimentRun"]:
+        message = SemanticMessage.from_commit(commit)
+        # if not message:
+        #     # @todo: is :20s the right syntax to truncate?
+        #     logger.debug(f"Could not parse semantic message: '{commit.message:.20s}'")
+        #     return None
+
+        return ExperimentRun.model_validate(message.metadata)
+
+
+class CommitKind(StrEnum):
+    """Types of semantic commits"""
+
+    EXP = "exp"
+    FIX = "fix"
+    FEAT = "feat"
+    CHORE = "chore"
+    TOOLING = "tooling"
+    REFACTOR = "refactor"
+
+    @property
+    def has_metadata(self) -> bool:
+        return self is CommitKind.EXP
+
+    @staticmethod
+    def from_header(header: str) -> Optional["CommitKind"]:
+        """Parse a commit kind from a header string"""
+        try:
+            kind = header.split(":")[0].strip()
+            return CommitKind(kind)
+        except Exception:
+            return None
+
+
+class SemanticMessage(Model):
     """Base class for our semantic commit formats"""
-    type: ChangeType
+
+    kind: CommitKind
     summary: str
     body: Optional[str] = None
+    metadata: Optional[dict[str, Any]] = None
 
-    def format_message(self) -> str:
-        msg = f"{self.type.value}: {self.summary}"
+    def render(self, with_metadata: bool = False) -> str:
+        msg = f"{self.kind.value}: {self.summary}"
         if self.body:
             msg += f"\n\n{self.body}"
-        return msg
-
-
-class ExperimentCommit(SemanticCommit):
-    """A commit specifically representing an experiment run"""
-    type: Literal[ChangeType.EXPERIMENT]  # Must be EXPERIMENT
-    experiment: ExperimentRun
-
-    def format_message(self) -> str:
-        msg = super().format_message()
-        msg += f"\n\n{METADATA_SEPARATOR}\n\n{json.dumps(self.experiment.model_dump(), indent=2)}"
+        if with_metadata and self.metadata:
+            msg += f"\n\n{BODY_METADATA_SEPARATOR}\n\n{json.dumps(self.metadata, indent=2)}"
         return msg
 
     @classmethod
-    def parse(cls, message: str) -> "ExperimentCommit":
-        """Parse a git commit message into an ExperimentCommit"""
-        parts = message.split(METADATA_SEPARATOR)
-        if len(parts) != 2:
-            raise ValueError("Invalid experiment commit - missing metadata section")
-            
-        header = parts[0].strip()
-        lines = header.split("\n")
-        first_line = lines[0]
-        type_str, summary = first_line.split(":", 1)
-        
-        if ChangeType(type_str.strip()) != ChangeType.EXPERIMENT:
-            raise ValueError("Invalid experiment commit - wrong type")
-            
-        body = "\n".join(lines[1:]).strip() if len(lines) > 1 else None
-        metadata = json.loads(parts[1].strip())
-        experiment = ExperimentRun(**metadata)
+    def from_commit(cls, commit: Commit) -> "SemanticMessage":
+        kind, summary, body, metadata = cls._parse_semantic_parts(commit)
 
-        return cls(
-            type=ChangeType.EXPERIMENT,
-            summary=summary.strip(),
-            body=body,
-            experiment=experiment
-        )
+        return cls(kind=kind, summary=summary.strip(), body=body, metadata=metadata)
+
+    @staticmethod
+    def _parse_semantic_parts(commit: Commit) -> tuple[CommitKind, str, Optional[str], Optional[dict]]:
+        # we only want to split on the first separator
+        parts = commit.message.split(SUMMARY_BODY_SEPARATOR, maxsplit=1)
+        header = parts[0]
+        kind_str, summary = header.split(":", 1)
+        kind = CommitKind(kind_str)
+
+        if len(parts) == 2:
+            body = parts[1]
+            if kind.has_metadata:
+                body, raw_metadata = body.split(BODY_METADATA_SEPARATOR)
+                metadata = json.loads(raw_metadata)
+                assert isinstance(metadata, dict)
+            else:
+                metadata = None
+        else:
+            body = metadata = None
+
+        return kind, summary, body, metadata

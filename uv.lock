@@ -316,7 +316,6 @@ wheels = [
 
 [[package]]
 name = "mthd"
-version = "0.0.3.dev1+g673bac1.d20250118"
 source = { editable = "." }
 dependencies = [
     { name = "anot" },

@@ -1,4 +1,4 @@
-from typing import List, Literal
+from typing import List
 
 import jmespath
 
@@ -30,6 +30,10 @@ class Query(BaseModel):
     @staticmethod
     def where(field: str, op: SimpleQueryOp, value: SimpleQueryValue) -> "Query":
         """Create a query that filters on a field value.
+
+        $ mthd viz "accuracy from ['lr', 'batch_size']"
+
+        $ mthd query "accuracy > 0.9"
 
         Example:
             Query.where("accuracy", ">", 0.9)
