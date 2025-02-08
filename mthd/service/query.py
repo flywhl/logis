@@ -22,25 +22,25 @@ class QueryService:
         Returns:
             QueryResult containing matching commits
         """
-        # Get all commits with experimental metadata
         commits = self.git_service.get_all_commits()
-        commits_by_sha = {c.sha: c for c in commits}
         total = len(commits)
 
-        exp_commits = [ExperimentRun.from_commit(commit) for commit in commits]
-        # print(exp_commits)
+        # Convert regular commits to experiment commits where possible
+        exp_commits = [
+            exp_commit for commit in commits
+            if (exp_commit := ExperimentCommit.from_commit(commit))
+        ]
 
-        # Compile and execute the JMESPath query
-        jmespath_query = query.compile()
-        print(query)
-        results: list[Commit] = jmespath_query.search(commits)
+        # Query on the experiment_run field
+        query_str = query.expression.replace("metrics.", "experiment_run.metrics.")
+        modified_query = Query(expression=query_str)
+        matching = modified_query.compile().search(exp_commits)
 
-        # Handle limit
-        # @todo: sort by commit date?
-        if limit:
+        results = matching or []
+        if limit and limit > 0:
             results = results[:limit]
 
-        return QueryResult(commits=results or [], query=query, num_searched=total)
+        return QueryResult(commits=results, query=query, num_searched=total)
 
     def execute_simple(
         self,
