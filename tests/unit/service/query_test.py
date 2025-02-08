@@ -16,12 +16,12 @@ def git_service():
     commits = [
         Commit(
             sha="abc123",
-            message='exp: Test 1\n\n---\n\n{"experiment": "test1", "metrics": {"accuracy": 0.8, "loss": 0.2}}',
+            message='exp: Test 1\n\n---\n\n{"experiment": "test1", "hyperparameters": {}, "metrics": {"accuracy": 0.8, "loss": 0.2}}',
             date=datetime(2024, 1, 1),
         ),
         Commit(
             sha="def456",
-            message='exp: Test 2\n\n---\n\n{"experiment": "test2", "metrics": {"accuracy": 0.9, "loss": 0.1}}',
+            message='exp: Test 2\n\n---\n\n{"experiment": "test2", "hyperparameters": {}, "metrics": {"accuracy": 0.9, "loss": 0.1}}',
             date=datetime(2024, 1, 2),
         ),
     ]
