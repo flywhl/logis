@@ -63,16 +63,19 @@ def commit(
             git_service = di[GitService]
 
             if use_context:
-                run = Context()
-                metrics = func(*args, run=run, **kwargs)
+                context = Context()
+                # Only inject if context isn't already provided
+                if 'context' not in kwargs:
+                    kwargs['context'] = context
+                metrics = func(*args, **kwargs)
 
-                if run.hyperparameters is None:
-                    raise MthdError("When using context, hyperparameters must be set via the Run object")
-                if run.metrics is None:
-                    raise MthdError("When using context, metrics must be set via the Run object")
+                if context.hyperparameters is None:
+                    raise MthdError("When using context, hyperparameters must be set via the Context object")
+                if context.metrics is None:
+                    raise MthdError("When using context, metrics must be set via the Context object")
 
-                hyper_dict = run.hyperparameters
-                metric_dict = run.metrics
+                hyper_dict = context.hyperparameters
+                metric_dict = context.metrics
             else:
                 metrics = func(*args, **kwargs)
 
@@ -130,7 +133,7 @@ if __name__ == "__main__":
         print("\n<Experiment 1 goes here>\n")
         return Metrics(a=1, b=2.0, c="3")
 
-    # Example using Run context object
+    # Example using Context object
     @commit(use_context=True)
     def test2(context: Context):
         print("\n<Experiment 2 goes here>\n")
@@ -138,4 +141,4 @@ if __name__ == "__main__":
         context.set_metrics({"a": 1, "b": 2.0, "c": "3"})
 
     test1(hypers=Hyperparameters(a=1, b=2.0, c="3"))
-    test2()
+    test2(context=Context())  # Explicitly pass context to satisfy type checker
