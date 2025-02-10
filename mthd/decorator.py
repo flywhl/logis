@@ -1,4 +1,5 @@
 from functools import wraps
+import os
 from typing import Callable, Optional, cast
 
 from pydantic import BaseModel
@@ -36,25 +37,29 @@ def commit(
             # codebase_service = di[CodebaseService]
 
             # Generate commit message
+
+            # Run experiment
+            metrics = func(*args, **kwargs)
+
             experiment = ExperimentRun(
                 experiment=func.__name__,
                 hyperparameters=hyperparameters.model_dump(),
-                metrics={},
+                metrics=metrics.model_dump(),
                 # annotations=codebase_service.get_all_annotations(),
             )
             message = experiment.as_commit_message(template=template)
-
-            # Run experiment
-            result = func(*args, **kwargs)
 
             # Commit changes
             if git_service.should_commit(strategy):
                 console = Console()
                 console.print("Generating commit with message:\n")
                 console.print(Padding(message.render(with_metadata=True), pad=(0, 0, 0, 4)))  # Indent by 4 spaces.
-                # git_service.stage_and_commit(message.render())
+                if os.getenv("MTHD_DRY_RUN") == "1":
+                    console.print("\nDry run enabled. Not committing changes.")
+                else:
+                    git_service.stage_and_commit(message.render())
 
-            return result
+            return metrics
 
         return wrapper
 
@@ -64,6 +69,7 @@ def commit(
 
 
 if __name__ == "__main__":
+    os.environ["MTHD_DRY_RUN"] = "1"
 
     class Hyperparameters(BaseModel):
         a: int
