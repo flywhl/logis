@@ -6,6 +6,7 @@ from git import Repo
 from mthd.service.codebase import CodebaseService
 from mthd.service.experiment import ExperimentService
 from mthd.service.git import GitService
+from mthd.service.query import QueryService
 
 T = TypeVar("T")
 
@@ -16,6 +17,7 @@ class GitProvider(Provider):
         try:
             return Repo()
         except Exception as e:
+            print(e)
             raise RuntimeError(f"Failed to initialize Git repository: {e}")
 
 
@@ -40,6 +42,7 @@ class DI:
         provider.provide(GitService)
         provider.provide(ExperimentService)
         provider.provide(CodebaseService)
+        provider.provide(QueryService)
 
         return provider
 
