@@ -55,19 +55,19 @@ def test_execute_query(query_service: QueryService):
 @patch("mthd.domain.git.ExperimentCommit.from_commit")
 def test_execute_simple_query(mock_from_commit, query_service: QueryService):
     # Setup mock experiments with ExperimentCommits
-    mock_commits = [
-        Mock(
-            experiment_run=ExperimentRun(
-                experiment="test1", hyperparameters={}, metrics={"loss": 0.2}
-            )
-        ),
-        Mock(
-            experiment_run=ExperimentRun(
-                experiment="test2", hyperparameters={}, metrics={"loss": 0.1}
-            )
-        ),
-    ]
-    mock_from_commit.side_effect = mock_commits
+    # Create experiment runs
+    exp_run1 = ExperimentRun(
+        experiment="test1", hyperparameters={}, metrics={"loss": 0.2}
+    )
+    exp_run2 = ExperimentRun(
+        experiment="test2", hyperparameters={}, metrics={"loss": 0.1}
+    )
+    
+    # Create mock experiment commits that will be returned by from_commit
+    mock_exp_commit1 = Mock(experiment_run=exp_run1, model_dump=lambda: {"run": exp_run1.model_dump()})
+    mock_exp_commit2 = Mock(experiment_run=exp_run2, model_dump=lambda: {"run": exp_run2.model_dump()})
+    
+    mock_from_commit.side_effect = [mock_exp_commit1, mock_exp_commit2]
 
     # Test simple query for low loss
     result = query_service.execute_simple("loss", "<", 0.15)

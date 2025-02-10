@@ -62,5 +62,5 @@ class QueryService:
         Returns:
             QueryResult containing matching commits
         """
-        query = Query.where(metric, op, value)
+        query = Query.where(f"metrics.{metric}", op, value)
         return self.execute(query, limit=limit)
