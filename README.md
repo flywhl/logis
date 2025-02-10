@@ -57,12 +57,12 @@ $ python experiment.py
 
 Generating commit with message:
 
-    exp: run test at 2025-02-10 18:39:18.759230
+    exp: run my_experiment at 2025-02-10 18:39:18.759230
 
     ---
 
     {
-      "experiment": "test",
+      "experiment": "my_experiment",
       "hyperparameters": {
         "lr": 0.001,
         "epochs": 100,
