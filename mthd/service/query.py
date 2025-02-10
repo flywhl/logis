@@ -1,7 +1,6 @@
 from typing import Optional
 
-from mthd.domain.experiment import ExperimentRun
-from mthd.domain.git import Commit
+from mthd.domain.git import ExperimentCommit
 from mthd.domain.query import Query, QueryResult, SimpleQueryOp, SimpleQueryValue
 from mthd.service.git import GitService
 
@@ -25,16 +24,19 @@ class QueryService:
         commits = self.git_service.get_all_commits()
         total = len(commits)
 
-        # Convert regular commits to experiment commits where possible
+        # Convert regular commits to experiment commits
         exp_commits = [
-            exp_commit for commit in commits
+            {"commit": exp_commit, "run": exp_commit.experiment_run.model_dump()}
+            for commit in commits
             if (exp_commit := ExperimentCommit.from_commit(commit))
         ]
 
-        # Query on the experiment_run field
-        query_str = query.expression.replace("metrics.", "experiment_run.metrics.")
+        query_str = query.expression.replace("metrics.", "run.metrics.").replace(
+            "hyperparameters.", "run.hyperparameters."
+        )
         modified_query = Query(expression=query_str)
-        matching = modified_query.compile().search(exp_commits)
+        search = modified_query.compile().search(exp_commits)
+        matching: list[ExperimentCommit] = [match["commit"] for match in search]
 
         results = matching or []
         if limit and limit > 0:
@@ -60,5 +62,5 @@ class QueryService:
         Returns:
             QueryResult containing matching commits
         """
-        query = Query.where(f"message.metrics.{metric}", op, value)
+        query = Query.where(metric, op, value)
         return self.execute(query, limit=limit)
