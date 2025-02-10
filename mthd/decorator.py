@@ -39,23 +39,24 @@ class Context:
         return self._metrics
 
 
-P = ParamSpec('P')
-R = TypeVar('R')
+P = ParamSpec("P")
+R = TypeVar("R")
+T = TypeVar("T")
 
 def commit(
-    fn: Optional[Callable[P, R]] = None,
+    fn: Optional[Callable[..., R]] = None,
     *,
     hypers: str = "hypers",
     template: str = "run {experiment}",
     strategy: StageStrategy = StageStrategy.ALL,
     use_context: bool = False,
-) -> Callable[P, R]:
+) -> Callable[..., R]:
     """Decorator to auto-commit experimental code with scientific metadata.
 
     Can be used as @commit or @commit(message="Custom message")
     """
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: Callable[..., R]) -> Callable[..., R]:
         @wraps(func)
         def wrapper(*args, **kwargs):
             di = DI()
