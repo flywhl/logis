@@ -9,7 +9,9 @@
 
 ## Features
 
-Mthd turns your commit history into a scientific log by auto-committing your code with metadata in the commit message - every time you run an experiment.
+`mthd` turns your commit history into a searchable scientific log.
+
+Every time you run an experiment, your code will be auto-committed with metadata in the commit message.
 
 
 ## Installation
