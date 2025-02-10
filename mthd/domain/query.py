@@ -1,4 +1,4 @@
-from typing import List
+from typing import Sequence
 
 import jmespath
 
@@ -59,6 +59,6 @@ class Query(BaseModel):
 class QueryResult(BaseModel):
     """Result of executing a query."""
 
-    commits: List[Commit]
+    commits: Sequence[Commit]
     query: Query
     num_searched: int

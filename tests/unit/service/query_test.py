@@ -1,7 +1,6 @@
 from datetime import datetime
 from unittest.mock import Mock, patch
 
-from pydantic import BaseModel
 import pytest
 
 from mthd.domain.experiment import ExperimentRun
@@ -52,30 +51,6 @@ def test_execute_query(query_service: QueryService):
     assert result.query == query
 
 
-@patch("mthd.domain.git.ExperimentCommit.from_commit")
-def test_execute_simple_query(mock_from_commit, query_service: QueryService):
-    # Setup mock experiments with ExperimentCommits
-    # Create experiment runs
-    exp_run1 = ExperimentRun(
-        experiment="test1", hyperparameters={}, metrics={"loss": 0.2}
-    )
-    exp_run2 = ExperimentRun(
-        experiment="test2", hyperparameters={}, metrics={"loss": 0.1}
-    )
-    
-    # Create mock experiment commits that will be returned by from_commit
-    mock_exp_commit1 = Mock(experiment_run=exp_run1, model_dump=lambda: {"run": exp_run1.model_dump()})
-    mock_exp_commit2 = Mock(experiment_run=exp_run2, model_dump=lambda: {"run": exp_run2.model_dump()})
-    
-    mock_from_commit.side_effect = [mock_exp_commit1, mock_exp_commit2]
-
-    # Test simple query for low loss
-    result = query_service.execute_simple("loss", "<", 0.15)
-
-    assert len(result.commits) == 1
-    assert result.num_searched == 2
-
-
 @patch("mthd.domain.experiment.ExperimentRun.from_commit")
 def test_execute_query_with_limit(mock_from_commit, query_service: QueryService):
     # Setup mock experiments
@@ -87,6 +62,21 @@ def test_execute_query_with_limit(mock_from_commit, query_service: QueryService)
     # Test query with limit
     query = Query.where("metrics.accuracy", ">=", 0.9)
     result = query_service.execute(query, limit=1)
+
+    assert len(result.commits) == 1
+    assert result.num_searched == 2
+
+
+@patch("mthd.domain.experiment.ExperimentRun.from_commit")
+def test_execute_simple(mock_from_commit, query_service: QueryService):
+    # Setup mock experiments
+    mock_from_commit.side_effect = [
+        ExperimentRun(experiment="test1", hyperparameters={}, metrics={"accuracy": 0.9}),
+        ExperimentRun(experiment="test2", hyperparameters={}, metrics={"accuracy": 0.95}),
+    ]
+
+    # Test query with limit
+    result = query_service.execute_simple("metrics.accuracy", "<", 0.95, limit=1)
 
     assert len(result.commits) == 1
     assert result.num_searched == 2

@@ -3,14 +3,16 @@ import logging
 
 from datetime import datetime
 from enum import StrEnum
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any, Optional
 from uuid import uuid4
 
 from pydantic import UUID4, Field
 
 from mthd.config import BODY_METADATA_SEPARATOR, SUMMARY_BODY_SEPARATOR
-from mthd.domain.git import Commit
 from mthd.util.model import Model
+
+if TYPE_CHECKING:
+    from mthd.domain.git import Commit
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +37,7 @@ class ExperimentRun(Model):
         )
 
     @staticmethod
-    def from_commit(commit: Commit) -> Optional["ExperimentRun"]:
+    def from_commit(commit: "Commit") -> Optional["ExperimentRun"]:
         message = SemanticMessage.from_commit(commit)
         # if not message:
         #     # @todo: is :20s the right syntax to truncate?
@@ -86,13 +88,13 @@ class SemanticMessage(Model):
         return msg
 
     @classmethod
-    def from_commit(cls, commit: Commit) -> "SemanticMessage":
+    def from_commit(cls, commit: "Commit") -> "SemanticMessage":
         kind, summary, body, metadata = cls._parse_semantic_parts(commit)
 
         return cls(kind=kind, summary=summary.strip(), body=body, metadata=metadata)
 
     @staticmethod
-    def _parse_semantic_parts(commit: Commit) -> tuple[CommitKind, str, Optional[str], Optional[dict]]:
+    def _parse_semantic_parts(commit: "Commit") -> tuple[CommitKind, str, Optional[str], Optional[dict]]:
         # we only want to split on the first separator
         parts = commit.message.split(SUMMARY_BODY_SEPARATOR, maxsplit=1)
         header = parts[0]

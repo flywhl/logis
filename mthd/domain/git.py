@@ -30,18 +30,14 @@ class Commit(Model):
 
 class ExperimentCommit(Commit):
     """A commit that contains experiment data"""
+
     experiment_run: ExperimentRun
 
-    @classmethod 
+    @classmethod
     def from_commit(cls, commit: Commit) -> Optional["ExperimentCommit"]:
         exp = ExperimentRun.from_commit(commit)
         if exp:
-            return cls(
-                sha=commit.sha,
-                message=commit.message,
-                date=commit.date,
-                experiment_run=exp
-            )
+            return cls(sha=commit.sha, message=commit.message, date=commit.date, experiment_run=exp)
         return None
 
 
