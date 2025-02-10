@@ -59,16 +59,17 @@ def commit(
             git_service = di[GitService]
 
             if use_context:
-                run = Context()
-                metrics = func(*args, run=run, **kwargs)
+                context = Context()
+                kwargs['context'] = context
+                metrics = func(*args, **kwargs)
 
-                if run.hyperparameters is None:
-                    raise MthdError("When using context, hyperparameters must be set via the Run object")
-                if run.metrics is None:
-                    raise MthdError("When using context, metrics must be set via the Run object")
+                if context.hyperparameters is None:
+                    raise MthdError("When using context, hyperparameters must be set via the Context object")
+                if context.metrics is None:
+                    raise MthdError("When using context, metrics must be set via the Context object")
 
-                hyper_dict = run.hyperparameters
-                metric_dict = run.metrics
+                hyper_dict = context.hyperparameters
+                metric_dict = context.metrics
             else:
                 metrics = func(*args, **kwargs)
 
