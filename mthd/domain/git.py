@@ -4,7 +4,7 @@ from typing import Optional
 
 import git
 
-from mthd.domain.experiment import ExperimentRun
+from mthd.domain.experiment import ExperimentRun, SemanticMessage
 from mthd.util.model import Model
 
 
@@ -27,6 +27,9 @@ class Commit(Model):
     def startswith(self, value: str) -> bool:
         return self.message.startswith(value)
 
+    def to_semantic(self) -> "SemanticMessage":
+        return SemanticMessage.from_commit(self)
+
 
 class ExperimentCommit(Commit):
     """A commit that contains experiment data"""
@@ -35,9 +38,12 @@ class ExperimentCommit(Commit):
 
     @classmethod
     def from_commit(cls, commit: Commit) -> Optional["ExperimentCommit"]:
-        exp = ExperimentRun.from_commit(commit)
-        if exp:
-            return cls(sha=commit.sha, message=commit.message, date=commit.date, experiment_run=exp)
+        try:
+            exp = ExperimentRun.from_commit(commit)
+            if exp:
+                return cls(sha=commit.sha, message=commit.message, date=commit.date, experiment_run=exp)
+        except ValueError:
+            return None
         return None
 
 

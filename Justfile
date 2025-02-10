@@ -7,18 +7,13 @@ test:
 test-s:
     @uv run pytest -s -o log_cli=True -o log_cli_level=DEBUG
 
-ruff-fix:
-    uv run ruff format mthd
-
-ruff-check:
-    uv run ruff check mthd
-
-pyright:
-    uv run pyright mthd
+fix:
+    uv run ruff format .
+    uv run ruff check --fix
 
 lint:
-    just ruff-check
-    just pyright
+    uv run ruff check mthd
+    uv run pyright mthd
 
 lint-file file:
     - ruff {{file}}

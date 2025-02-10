@@ -54,7 +54,7 @@ def commit(
             if git_service.should_commit(strategy):
                 console = Console()
                 console.print("Generating commit with message:\n")
-                console.print(Padding(message.render(with_metadata=True), pad=(0, 0, 0, 4)))  # Indent by 4 spaces.
+                console.print(Padding(message.render(), pad=(0, 0, 0, 4)))  # Indent by 4 spaces.
                 if os.getenv("MTHD_DRY_RUN") == "1":
                     console.print("\nDry run enabled. Not committing changes.")
                 else:

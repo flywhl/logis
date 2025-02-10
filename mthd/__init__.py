@@ -1,2 +1,3 @@
-def main():
-    print("hello")
+from mthd.decorator import commit
+
+__ALL__ = [commit]

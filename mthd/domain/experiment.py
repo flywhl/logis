@@ -79,11 +79,11 @@ class SemanticMessage(Model):
     body: Optional[str] = None
     metadata: Optional[dict[str, Any]] = None
 
-    def render(self, with_metadata: bool = False) -> str:
+    def render(self) -> str:
         msg = f"{self.kind.value}: {self.summary}"
         if self.body:
             msg += f"\n\n{self.body}"
-        if with_metadata and self.metadata:
+        if self.metadata:
             msg += f"\n\n{BODY_METADATA_SEPARATOR}\n\n{json.dumps(self.metadata, indent=2)}"
         return msg
 
