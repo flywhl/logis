@@ -2,7 +2,7 @@ import os
 
 from dataclasses import dataclass
 from functools import wraps
-from typing import Callable, Literal, Optional, ParamSpec, TypeVar, cast, overload
+from typing import Callable, Literal, Optional, ParamSpec, TypeVar, Union, cast, overload
 
 from pydantic import BaseModel
 from rich.console import Console
@@ -79,7 +79,7 @@ def commit(
     template: str = "run {experiment}",
     strategy: StageStrategy = StageStrategy.ALL,
     use_context: bool = False,
-) -> Callable[..., R]:
+) -> Union[Callable[[Callable[..., R]], Callable[..., R]], Callable[..., R]]:
     """Decorator to auto-commit experimental code with scientific metadata.
 
     Can be used as @commit or @commit(message="Custom message")
