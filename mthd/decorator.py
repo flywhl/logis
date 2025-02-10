@@ -43,6 +43,7 @@ P = ParamSpec("P")
 R = TypeVar("R")
 T = TypeVar("T")
 
+
 @overload
 def commit(
     fn: None = None,
@@ -52,6 +53,7 @@ def commit(
     strategy: StageStrategy = StageStrategy.ALL,
     use_context: Literal[True],
 ) -> Callable[[Callable[..., R]], Callable[..., R]]: ...
+
 
 @overload
 def commit(
@@ -63,10 +65,12 @@ def commit(
     use_context: Literal[False] = False,
 ) -> Callable[[Callable[P, R]], Callable[P, R]]: ...
 
+
 @overload
 def commit(
     fn: Callable[P, R],
 ) -> Callable[P, R]: ...
+
 
 def commit(
     fn: Optional[Callable[..., R]] = None,
@@ -90,8 +94,8 @@ def commit(
             if use_context:
                 context = Context()
                 # Only inject if context isn't already provided
-                if 'context' not in kwargs:
-                    kwargs['context'] = context
+                if "context" not in kwargs:
+                    kwargs["context"] = context
                 metrics = func(*args, **kwargs)
 
                 if context.hyperparameters is None:
