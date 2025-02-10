@@ -1,7 +1,8 @@
 import os
+
 from dataclasses import dataclass
 from functools import wraps
-from typing import Any, Callable, Optional, cast
+from typing import Callable, Optional, cast
 
 from pydantic import BaseModel
 from rich.console import Console
@@ -10,31 +11,32 @@ from rich.padding import Padding
 from mthd.domain.experiment import ExperimentRun
 from mthd.domain.git import StageStrategy
 from mthd.error import MthdError
+from mthd.service.git import GitService
+from mthd.util.di import DI
 
 
 @dataclass
 class Run:
     """Tracks experiment hyperparameters and metrics."""
+
     _hypers: dict = None
     _metrics: dict = None
-    
+
     def set_hyperparameters(self, **kwargs) -> None:
         """Set hyperparameters manually."""
         self._hypers = kwargs
-        
+
     def set_metrics(self, **kwargs) -> None:
         """Set metrics manually."""
         self._metrics = kwargs
-        
+
     @property
     def hyperparameters(self) -> Optional[dict]:
         return self._hypers
-        
+
     @property
     def metrics(self) -> Optional[dict]:
         return self._metrics
-from mthd.service.git import GitService
-from mthd.util.di import DI
 
 
 def commit(
@@ -43,6 +45,7 @@ def commit(
     hypers: str = "hypers",
     template: str = "run {experiment}",
     strategy: StageStrategy = StageStrategy.ALL,
+    use_context: bool = False,
 ) -> Callable:
     """Decorator to auto-commit experimental code with scientific metadata.
 
@@ -55,10 +58,10 @@ def commit(
             di = DI()
             run = Run()
             git_service = di[GitService]
-            
+
             # Run experiment
             metrics = func(*args, run=run, **kwargs)
-            
+
             # Get experiment data from either the Run object or function args/return
             if run.hyperparameters is not None:
                 hyper_dict = run.hyperparameters
@@ -67,7 +70,7 @@ def commit(
                 if not hyperparameters:
                     raise MthdError("Hyperparameters must be provided either via Run object or function arguments")
                 hyper_dict = hyperparameters.model_dump()
-                
+
             if run.metrics is not None:
                 metric_dict = run.metrics
             else:
