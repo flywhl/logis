@@ -56,30 +56,33 @@ def commit(
         @wraps(func)
         def wrapper(*args, **kwargs):
             di = DI()
-            run = Run()
             git_service = di[GitService]
 
-            # Run experiment
-            metrics = func(*args, run=run, **kwargs)
-
-            # Get experiment data from either the Run object or function args/return
-            if run.hyperparameters is not None:
+            if use_context:
+                run = Run()
+                metrics = func(*args, run=run, **kwargs)
+                
+                if run.hyperparameters is None:
+                    raise MthdError("When using context, hyperparameters must be set via the Run object")
+                if run.metrics is None:
+                    raise MthdError("When using context, metrics must be set via the Run object")
+                
                 hyper_dict = run.hyperparameters
-            else:
-                hyperparameters = cast(BaseModel, kwargs.get(hypers, None))
-                if not hyperparameters:
-                    raise MthdError("Hyperparameters must be provided either via Run object or function arguments")
-                hyper_dict = hyperparameters.model_dump()
-
-            if run.metrics is not None:
                 metric_dict = run.metrics
             else:
+                metrics = func(*args, **kwargs)
+                
+                hyperparameters = cast(BaseModel, kwargs.get(hypers, None))
+                if not hyperparameters:
+                    raise MthdError("When not using context, hyperparameters must be provided as function arguments")
                 if not isinstance(metrics, BaseModel):
-                    raise MthdError("Metrics must be provided either via Run object or as BaseModel return value")
+                    raise MthdError("When not using context, metrics must be returned as a BaseModel")
+                
+                hyper_dict = hyperparameters.model_dump()
                 metric_dict = metrics.model_dump()
 
             experiment = ExperimentRun(
-                experiment=func.__name__,
+                experiment=func.__name__, 
                 hyperparameters=hyper_dict,
                 metrics=metric_dict,
             )
@@ -119,17 +122,16 @@ if __name__ == "__main__":
 
     # Example using function arguments/return
     @commit(hypers="hypers", template="run {experiment} at {timestamp}")
-    def test1(hypers: Hyperparameters, run: Run):
+    def test1(hypers: Hyperparameters):
         print("\n<Experiment 1 goes here>\n")
         return Metrics(a=1, b=2.0, c="3")
 
-    # Example using Run object
-    @commit
+    # Example using Run context object
+    @commit(use_context=True)
     def test2(run: Run):
         print("\n<Experiment 2 goes here>\n")
         run.set_hyperparameters(a=1, b=2.0, c="3")
         run.set_metrics(a=1, b=2.0, c="3")
-        return None
 
     test1(hypers=Hyperparameters(a=1, b=2.0, c="3"))
     test2()
