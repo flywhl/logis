@@ -2,7 +2,7 @@ import os
 
 from dataclasses import dataclass
 from functools import wraps
-from typing import Callable, Optional, cast
+from typing import Callable, Optional, ParamSpec, TypeVar, cast
 
 from pydantic import BaseModel
 from rich.console import Console
@@ -39,14 +39,17 @@ class Context:
         return self._metrics
 
 
+P = ParamSpec('P')
+R = TypeVar('R')
+
 def commit(
-    fn: Optional[Callable] = None,
+    fn: Optional[Callable[P, R]] = None,
     *,
     hypers: str = "hypers",
     template: str = "run {experiment}",
     strategy: StageStrategy = StageStrategy.ALL,
     use_context: bool = False,
-) -> Callable:
+) -> Callable[P, R]:
     """Decorator to auto-commit experimental code with scientific metadata.
 
     Can be used as @commit or @commit(message="Custom message")
@@ -128,7 +131,7 @@ if __name__ == "__main__":
 
     # Example using Run context object
     @commit(use_context=True)
-    def test2(context: Context | None = None):
+    def test2(context: Context):
         print("\n<Experiment 2 goes here>\n")
         context.set_hyperparameters({"a": 1, "b": 2.0, "c": "3"})
         context.set_metrics({"a": 1, "b": 2.0, "c": "3"})
