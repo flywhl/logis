@@ -1,6 +1,7 @@
 from datetime import datetime
 from unittest.mock import Mock, patch
 
+from pydantic import BaseModel
 import pytest
 
 from mthd.domain.experiment import ExperimentRun
@@ -45,7 +46,6 @@ def test_execute_query(query_service: QueryService):
     # Test query for high accuracy
     query = Query.where("metrics.accuracy", ">", 0.85)
     result = query_service.execute(query)
-    print(result)
 
     assert len(result.commits) == 1
     assert result.num_searched == 2
