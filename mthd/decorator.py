@@ -16,19 +16,19 @@ from mthd.util.di import DI
 
 
 @dataclass
-class Run:
+class Context:
     """Tracks experiment hyperparameters and metrics."""
 
-    _hypers: dict = None
-    _metrics: dict = None
+    _hypers: Optional[dict] = None
+    _metrics: Optional[dict] = None
 
-    def set_hyperparameters(self, **kwargs) -> None:
+    def set_hyperparameters(self, hypers: dict) -> None:
         """Set hyperparameters manually."""
-        self._hypers = kwargs
+        self._hypers = hypers
 
-    def set_metrics(self, **kwargs) -> None:
+    def set_metrics(self, metrics: dict) -> None:
         """Set metrics manually."""
-        self._metrics = kwargs
+        self._metrics = metrics
 
     @property
     def hyperparameters(self) -> Optional[dict]:
@@ -59,30 +59,30 @@ def commit(
             git_service = di[GitService]
 
             if use_context:
-                run = Run()
+                run = Context()
                 metrics = func(*args, run=run, **kwargs)
-                
+
                 if run.hyperparameters is None:
                     raise MthdError("When using context, hyperparameters must be set via the Run object")
                 if run.metrics is None:
                     raise MthdError("When using context, metrics must be set via the Run object")
-                
+
                 hyper_dict = run.hyperparameters
                 metric_dict = run.metrics
             else:
                 metrics = func(*args, **kwargs)
-                
+
                 hyperparameters = cast(BaseModel, kwargs.get(hypers, None))
                 if not hyperparameters:
                     raise MthdError("When not using context, hyperparameters must be provided as function arguments")
                 if not isinstance(metrics, BaseModel):
                     raise MthdError("When not using context, metrics must be returned as a BaseModel")
-                
+
                 hyper_dict = hyperparameters.model_dump()
                 metric_dict = metrics.model_dump()
 
             experiment = ExperimentRun(
-                experiment=func.__name__, 
+                experiment=func.__name__,
                 hyperparameters=hyper_dict,
                 metrics=metric_dict,
             )
@@ -128,10 +128,10 @@ if __name__ == "__main__":
 
     # Example using Run context object
     @commit(use_context=True)
-    def test2(run: Run):
+    def test2(context: Context):
         print("\n<Experiment 2 goes here>\n")
-        run.set_hyperparameters(a=1, b=2.0, c="3")
-        run.set_metrics(a=1, b=2.0, c="3")
+        context.set_hyperparameters({"a": 1, "b": 2.0, "c": "3"})
+        context.set_metrics({"a": 1, "b": 2.0, "c": "3"})
 
     test1(hypers=Hyperparameters(a=1, b=2.0, c="3"))
     test2()
