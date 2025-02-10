@@ -2,7 +2,7 @@ import os
 
 from dataclasses import dataclass
 from functools import wraps
-from typing import Callable, Optional, ParamSpec, TypeVar, cast
+from typing import Callable, Literal, Optional, ParamSpec, TypeVar, cast, overload
 
 from pydantic import BaseModel
 from rich.console import Console
@@ -42,6 +42,31 @@ class Context:
 P = ParamSpec("P")
 R = TypeVar("R")
 T = TypeVar("T")
+
+@overload
+def commit(
+    fn: None = None,
+    *,
+    hypers: str = "hypers",
+    template: str = "run {experiment}",
+    strategy: StageStrategy = StageStrategy.ALL,
+    use_context: Literal[True],
+) -> Callable[[Callable[..., R]], Callable[..., R]]: ...
+
+@overload
+def commit(
+    fn: None = None,
+    *,
+    hypers: str = "hypers",
+    template: str = "run {experiment}",
+    strategy: StageStrategy = StageStrategy.ALL,
+    use_context: Literal[False] = False,
+) -> Callable[[Callable[P, R]], Callable[P, R]]: ...
+
+@overload
+def commit(
+    fn: Callable[P, R],
+) -> Callable[P, R]: ...
 
 def commit(
     fn: Optional[Callable[..., R]] = None,
@@ -141,4 +166,4 @@ if __name__ == "__main__":
         context.set_metrics({"a": 1, "b": 2.0, "c": "3"})
 
     test1(hypers=Hyperparameters(a=1, b=2.0, c="3"))
-    test2(context=Context())  # Explicitly pass context to satisfy type checker
+    test2()  # No need to pass context
