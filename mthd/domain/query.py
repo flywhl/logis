@@ -5,7 +5,7 @@ import jmespath
 from jmespath.parser import ParsedResult
 from pydantic import BaseModel
 
-from mthd.domain.git import Commit
+from mthd.domain.git import ExperimentCommit
 
 # SimpleQueryOp = Literal[">", "<", ">=", "<=", "=="]
 # SimpleQueryValue = str | int | float
@@ -59,6 +59,10 @@ class Query(BaseModel):
 class QueryResult(BaseModel):
     """Result of executing a query."""
 
-    commits: Sequence[Commit]
+    commits: Sequence[ExperimentCommit]
     query: Query
     num_searched: int
+
+    @property
+    def is_empty(self) -> bool:
+        return len(self.commits) == 0
