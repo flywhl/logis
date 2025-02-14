@@ -62,7 +62,7 @@ class Metrics(BaseModel):
     accuracy: float
     loss: float
 
-@commit(hypers="hypers")
+@commit(hypers="hypers", implicit=True)
 def train_model(hypers: Hyperparameters) -> Metrics:
     # Simulate training
     accuracy = 0.75 + ({iteration} * 0.05)  # Gradually improve accuracy
@@ -86,16 +86,16 @@ if __name__ == "__main__":
         f.write(content)
 
 
-def create_context_experiment_file(temp_dir: Path, iteration: int) -> None:
-    """Create or update the experiment file using context-based API."""
+def create_run_experiment_file(temp_dir: Path, iteration: int) -> None:
+    """Create or update the experiment file using run-based API."""
     content = f"""
 from mthd import commit
-from mthd.decorator import Context
+from mthd.decorator import Run
 
-@commit(use_context=True)
-def train_model(context: Context):
+@commit
+def train_model(run: Run):
     # Set hyperparameters
-    context.set_hyperparameters({{
+    run.set_hyperparameters({{
         "learning_rate": 0.001 * ({iteration} + 1),
         "batch_size": 32 * ({iteration} + 1),
         "epochs": 10 * ({iteration} + 1)
@@ -106,7 +106,7 @@ def train_model(context: Context):
     loss = 0.5 - ({iteration} * 0.1)        # Gradually decrease loss
     
     # Set metrics
-    context.set_metrics({{
+    run.set_metrics({{
         "accuracy": accuracy,
         "loss": max(0.1, loss)
     }})
@@ -161,7 +161,6 @@ def test_multiple_experiments(temp_dir: Path):
         text=True,
         cwd=temp_dir,
     )
-    print(result.stdout)
 
     assert result.returncode == 0
 
@@ -186,8 +185,8 @@ def test_multiple_experiments(temp_dir: Path):
     assert "Found 3 commit(s)" in output_lines[0]
 
 
-def test_multiple_context_experiments(temp_dir: Path):
-    """Test running multiple experiments using context-based API."""
+def test_multiple_run_experiments(temp_dir: Path):
+    """Test running multiple experiments using run-based API."""
     # Get the path to the Python executable in the virtual environment
     if os.name == "nt":  # Windows
         python_path = temp_dir / ".venv" / "Scripts" / "python.exe"
@@ -198,7 +197,7 @@ def test_multiple_context_experiments(temp_dir: Path):
 
     # Run multiple iterations of the experiment
     for i in range(4):
-        create_context_experiment_file(temp_dir, i)
+        create_run_experiment_file(temp_dir, i)
 
         # Run the experiment using the virtualenv python
         subprocess.run(
@@ -228,7 +227,6 @@ def test_multiple_context_experiments(temp_dir: Path):
         text=True,
         cwd=temp_dir,
     )
-    print(result.stdout)
 
     assert result.returncode == 0
 

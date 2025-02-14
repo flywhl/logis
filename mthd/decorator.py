@@ -16,7 +16,7 @@ from mthd.util.di import DI
 
 
 @dataclass
-class Context:
+class Run:
     """Tracks experiment hyperparameters and metrics."""
 
     _hypers: Optional[dict] = None
@@ -41,6 +41,7 @@ class Context:
 
 P = ParamSpec("P")
 R = TypeVar("R")
+T = TypeVar("T")
 
 
 @overload
@@ -50,8 +51,8 @@ def commit(
     hypers: str = "hypers",
     template: str = "run {experiment}",
     strategy: StageStrategy = StageStrategy.ALL,
-    use_context: Literal[True],
-) -> Callable[[Callable[Concatenate[P, [Context]], R]], Callable[P, R]]: ...
+    implicit: Literal[False] = False,
+) -> Callable[[Callable[Concatenate[Run, P], R]], Callable[P, R]]: ...
 
 
 @overload
@@ -61,24 +62,24 @@ def commit(
     hypers: str = "hypers",
     template: str = "run {experiment}",
     strategy: StageStrategy = StageStrategy.ALL,
-    use_context: Literal[False] = False,
+    implicit: Literal[True],
 ) -> Callable[[Callable[P, R]], Callable[P, R]]: ...
 
 
 @overload
 def commit(
     fn: Callable[P, R],
-) -> Callable[P, R]: ...
+) -> Callable[Concatenate[Run, P], R]: ...
 
 
 def commit(
-    fn: Optional[Callable[Concatenate[P, [Context]], R]] = None,
+    fn: Optional[Callable[..., R]] = None,
     *,
     hypers: str = "hypers",
     template: str = "run {experiment}",
     strategy: StageStrategy = StageStrategy.ALL,
-    use_context: bool = False,
-) -> Union[Callable[[Callable[Concatenate[P, [Context]], R]], Callable[P, R]], Callable[P, R]]:
+    implicit: bool = False,
+) -> Union[Callable[[Callable[..., R]], Callable[..., R]], Callable[..., R]]:
     """Decorator to auto-commit experimental code with scientific metadata.
 
     Can be used as @commit or @commit(message="Custom message")
@@ -90,11 +91,9 @@ def commit(
             di = DI()
             git_service = di[GitService]
 
-            if use_context:
-                context = Context()
-                # Only inject if context isn't already provided
-                if "context" not in kwargs:
-                    kwargs["context"] = context
+            if not implicit:
+                context = Run()
+                args = [context] + list(args)
                 metrics = func(*args, **kwargs)
 
                 if context.hyperparameters is None:
@@ -156,17 +155,17 @@ if __name__ == "__main__":
         c: str
 
     # Example using function arguments/return
-    @commit(hypers="hypers", template="run {experiment} at {timestamp}")
+    @commit(hypers="hypers", implicit=True, template="run {experiment} at {timestamp}")
     def test1(hypers: Hyperparameters):
         print("\n<Experiment 1 goes here>\n")
         return Metrics(a=1, b=2.0, c="3")
 
     # Example using Context object
-    @commit(use_context=True)
-    def test2(context: Context):
+    @commit()
+    def test2(run: Run, foo: int):
         print("\n<Experiment 2 goes here>\n")
-        context.set_hyperparameters({"a": 1, "b": 2.0, "c": "3"})
-        context.set_metrics({"a": 1, "b": 2.0, "c": "3"})
+        run.set_hyperparameters({"a": 1, "b": 2.0, "c": "3"})
+        run.set_metrics({"a": 1, "b": 2.0, "c": "3"})
 
     test1(hypers=Hyperparameters(a=1, b=2.0, c="3"))
-    test2()  # No need to pass context
+    test2(5)  # No need to pass context
