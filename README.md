@@ -50,7 +50,7 @@ def my_experiment(run: Run) -> Metrics:
     run.set_metrics({ ... })
 
 if __name__ == "__main__":
-    my_experiment(Hypers(lr=0.001, epochs=100))
+    my_experiment()
 ```
 
 Then run your experiment:
