@@ -86,6 +86,39 @@ if __name__ == "__main__":
         f.write(content)
 
 
+def create_context_experiment_file(temp_dir: Path, iteration: int) -> None:
+    """Create or update the experiment file using context-based API."""
+    content = f"""
+from mthd import commit
+from mthd.decorator import Context
+
+@commit(use_context=True)
+def train_model(context: Context):
+    # Set hyperparameters
+    context.set_hyperparameters({{
+        "learning_rate": 0.001 * ({iteration} + 1),
+        "batch_size": 32 * ({iteration} + 1),
+        "epochs": 10 * ({iteration} + 1)
+    }})
+    
+    # Simulate training
+    accuracy = 0.75 + ({iteration} * 0.05)  # Gradually improve accuracy
+    loss = 0.5 - ({iteration} * 0.1)        # Gradually decrease loss
+    
+    # Set metrics
+    context.set_metrics({{
+        "accuracy": accuracy,
+        "loss": max(0.1, loss)
+    }})
+
+if __name__ == "__main__":
+    train_model()
+"""
+
+    with open(temp_dir / "experiment.py", "w") as f:
+        f.write(content)
+
+
 def test_multiple_experiments(temp_dir: Path):
     """Test running multiple experiments and creating commits."""
     # Get the path to the Python executable in the virtual environment
@@ -99,6 +132,73 @@ def test_multiple_experiments(temp_dir: Path):
     # Run multiple iterations of the experiment
     for i in range(4):
         create_experiment_file(temp_dir, i)
+
+        # Run the experiment using the virtualenv python
+        subprocess.run(
+            [str(python_path), str(temp_dir / "experiment.py")],
+            check=True,
+        )
+
+    # Verify the commits
+    repo = git.Repo(temp_dir)
+    commits = list(repo.iter_commits())
+
+    # Should have 4 commits
+    assert len(commits) == 4
+
+    # All commits should be experiment commits
+    for commit in commits:
+        message = commit.message if isinstance(commit.message, str) else commit.message.decode("utf-8")
+
+        assert message.startswith("exp: ")
+        assert "metrics" in message
+        assert "hyperparameters" in message
+
+    # Test querying for experiments with high accuracy
+    result = subprocess.run(
+        [str(mthd_path), "query", "metrics.accuracy > 0.8"],
+        capture_output=True,
+        text=True,
+        cwd=temp_dir,
+    )
+    print(result.stdout)
+
+    assert result.returncode == 0
+
+    # Should find 2 commits (iterations 2 and 4 have accuracy > 0.8)
+    output_lines = result.stdout.strip().split("\n")
+    assert len(output_lines) > 0
+    assert "Found 2 commit(s)" in output_lines[0]
+
+    # Test querying for experiments with low loss
+    result = subprocess.run(
+        [str(mthd_path), "query", "metrics.loss < 0.5"],
+        capture_output=True,
+        text=True,
+        cwd=temp_dir,
+    )
+
+    assert result.returncode == 0
+
+    # Should find 3 commits (iterations 2, 3, and 4 have loss < 0.5)
+    output_lines = result.stdout.strip().split("\n")
+    assert len(output_lines) > 0
+    assert "Found 3 commit(s)" in output_lines[0]
+
+
+def test_multiple_context_experiments(temp_dir: Path):
+    """Test running multiple experiments using context-based API."""
+    # Get the path to the Python executable in the virtual environment
+    if os.name == "nt":  # Windows
+        python_path = temp_dir / ".venv" / "Scripts" / "python.exe"
+        mthd_path = temp_dir / ".venv" / "Scripts" / "mthd.exe"
+    else:  # Unix-like
+        python_path = temp_dir / ".venv" / "bin" / "python"
+        mthd_path = temp_dir / ".venv" / "bin" / "mthd"
+
+    # Run multiple iterations of the experiment
+    for i in range(4):
+        create_context_experiment_file(temp_dir, i)
 
         # Run the experiment using the virtualenv python
         subprocess.run(
