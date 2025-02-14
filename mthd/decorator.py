@@ -41,7 +41,6 @@ class Context:
 
 P = ParamSpec("P")
 R = TypeVar("R")
-T = TypeVar("T")
 
 
 @overload
@@ -52,7 +51,7 @@ def commit(
     template: str = "run {experiment}",
     strategy: StageStrategy = StageStrategy.ALL,
     use_context: Literal[True],
-) -> Callable[[Callable[..., R]], Callable[..., R]]: ...
+) -> Callable[[Callable[Concatenate[P, [Context]], R]], Callable[P, R]]: ...
 
 
 @overload
@@ -73,13 +72,13 @@ def commit(
 
 
 def commit(
-    fn: Optional[Callable[..., R]] = None,
+    fn: Optional[Callable[Concatenate[P, [Context]], R]] = None,
     *,
     hypers: str = "hypers",
     template: str = "run {experiment}",
     strategy: StageStrategy = StageStrategy.ALL,
     use_context: bool = False,
-) -> Union[Callable[[Callable[..., R]], Callable[..., R]], Callable[..., R]]:
+) -> Union[Callable[[Callable[Concatenate[P, [Context]], R]], Callable[P, R]], Callable[P, R]]:
     """Decorator to auto-commit experimental code with scientific metadata.
 
     Can be used as @commit or @commit(message="Custom message")
