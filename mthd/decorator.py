@@ -2,7 +2,7 @@ import os
 
 from dataclasses import dataclass
 from functools import wraps
-from typing import Callable, Literal, Optional, ParamSpec, TypeVar, Union, cast, overload
+from typing import Callable, Concatenate, Literal, Optional, ParamSpec, TypeVar, Union, cast, overload
 
 from pydantic import BaseModel
 from rich.console import Console
@@ -52,7 +52,7 @@ def commit(
     template: str = "run {experiment}",
     strategy: StageStrategy = StageStrategy.ALL,
     use_context: Literal[True],
-) -> Callable[[Callable[..., R]], Callable[..., R]]: ...
+) -> Callable[[Callable[Concatenate[P, Context], R]], Callable[P, R]]: ...
 
 
 @overload
