@@ -52,7 +52,7 @@ def commit(
     template: str = "run {experiment}",
     strategy: StageStrategy = StageStrategy.ALL,
     use_context: Literal[True],
-) -> Callable[[Callable[Concatenate[P, Context], R]], Callable[P, R]]: ...
+) -> Callable[[Callable[..., R]], Callable[..., R]]: ...
 
 
 @overload
@@ -164,7 +164,7 @@ if __name__ == "__main__":
 
     # Example using Context object
     @commit(use_context=True)
-    def test2(foo: int, context: Context):
+    def test2(context: Context):
         print("\n<Experiment 2 goes here>\n")
         context.set_hyperparameters({"a": 1, "b": 2.0, "c": "3"})
         context.set_metrics({"a": 1, "b": 2.0, "c": "3"})
