@@ -1,7 +1,8 @@
 import os
 
+from dataclasses import dataclass
 from functools import wraps
-from typing import Callable, Optional, cast
+from typing import Callable, Concatenate, Literal, Optional, ParamSpec, TypeVar, Union, cast, overload
 
 from pydantic import BaseModel
 from rich.console import Console
@@ -14,39 +15,110 @@ from mthd.service.git import GitService
 from mthd.util.di import DI
 
 
+@dataclass
+class Run:
+    """Tracks experiment hyperparameters and metrics."""
+
+    _hypers: Optional[dict] = None
+    _metrics: Optional[dict] = None
+
+    def set_hyperparameters(self, hypers: dict) -> None:
+        """Set hyperparameters manually."""
+        self._hypers = hypers
+
+    def set_metrics(self, metrics: dict) -> None:
+        """Set metrics manually."""
+        self._metrics = metrics
+
+    @property
+    def hyperparameters(self) -> Optional[dict]:
+        return self._hypers
+
+    @property
+    def metrics(self) -> Optional[dict]:
+        return self._metrics
+
+
+P = ParamSpec("P")
+R = TypeVar("R")
+T = TypeVar("T")
+
+
+@overload
 def commit(
-    fn: Optional[Callable] = None,
+    fn: None = None,
     *,
     hypers: str = "hypers",
     template: str = "run {experiment}",
     strategy: StageStrategy = StageStrategy.ALL,
-) -> Callable:
+    implicit: Literal[False] = False,
+) -> Callable[[Callable[Concatenate[Run, P], R]], Callable[P, R]]: ...
+
+
+@overload
+def commit(
+    fn: None = None,
+    *,
+    hypers: str = "hypers",
+    template: str = "run {experiment}",
+    strategy: StageStrategy = StageStrategy.ALL,
+    implicit: Literal[True],
+) -> Callable[[Callable[P, R]], Callable[P, R]]: ...
+
+
+@overload
+def commit(
+    fn: Callable[P, R],
+) -> Callable[Concatenate[Run, P], R]: ...
+
+
+def commit(
+    fn: Optional[Callable[..., R]] = None,
+    *,
+    hypers: str = "hypers",
+    template: str = "run {experiment}",
+    strategy: StageStrategy = StageStrategy.ALL,
+    implicit: bool = False,
+) -> Union[Callable[[Callable[..., R]], Callable[..., R]], Callable[..., R]]:
     """Decorator to auto-commit experimental code with scientific metadata.
 
     Can be used as @commit or @commit(message="Custom message")
     """
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: Callable[..., R]) -> Callable[..., R]:
         @wraps(func)
         def wrapper(*args, **kwargs):
             di = DI()
-            # @todo: handle this better (eg. positional args)
-            hyperparameters = cast(BaseModel, kwargs.get(hypers, None))
-            if not hyperparameters:
-                raise MthdError("Hyperparameters must be provided in the function call.")
             git_service = di[GitService]
-            # codebase_service = di[CodebaseService]
 
-            # Generate commit message
+            if not implicit:
+                context = Run()
+                args = [context] + list(args)
+                metrics = func(*args, **kwargs)
 
-            # Run experiment
-            metrics = func(*args, **kwargs)
+                if context.hyperparameters is None:
+                    raise MthdError("When using context, hyperparameters must be set via the Context object")
+                if context.metrics is None:
+                    raise MthdError("When using context, metrics must be set via the Context object")
+
+                hyper_dict = context.hyperparameters
+                metric_dict = context.metrics
+            else:
+                metrics = func(*args, **kwargs)
+
+                hyperparameters = cast(BaseModel, kwargs.get(hypers, None))
+                if not hyperparameters:
+                    raise MthdError("When not using context, hyperparameters must be provided as function arguments")
+                if not isinstance(metrics, BaseModel):
+                    raise MthdError("When not using context, metrics must be returned as a BaseModel")
+
+                hyper_dict = hyperparameters.model_dump()
+                metric_dict = metrics.model_dump()
 
             experiment = ExperimentRun(
                 experiment=func.__name__,
-                hyperparameters=hyperparameters.model_dump(),
-                metrics=metrics.model_dump(),
-                # annotations=codebase_service.get_all_annotations(),
+                hyperparameters=hyper_dict,
+                metrics=metric_dict,
             )
             message = experiment.as_commit_message(template=template)
 
@@ -82,9 +154,18 @@ if __name__ == "__main__":
         b: float
         c: str
 
-    @commit(hypers="hypers", template="run {experiment} at {timestamp}")
-    def test(hypers: Hyperparameters):
-        print("\n<Experiment goes here>\n")
+    # Example using function arguments/return
+    @commit(hypers="hypers", implicit=True, template="run {experiment} at {timestamp}")
+    def test1(hypers: Hyperparameters):
+        print("\n<Experiment 1 goes here>\n")
         return Metrics(a=1, b=2.0, c="3")
 
-    test(hypers=Hyperparameters(a=1, b=2.0, c="3"))
+    # Example using Context object
+    @commit()
+    def test2(run: Run, foo: int):
+        print("\n<Experiment 2 goes here>\n")
+        run.set_hyperparameters({"a": 1, "b": 2.0, "c": "3"})
+        run.set_metrics({"a": 1, "b": 2.0, "c": "3"})
+
+    test1(hypers=Hyperparameters(a=1, b=2.0, c="3"))
+    test2(5)  # No need to pass context

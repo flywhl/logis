@@ -25,7 +25,7 @@ Every time you run an experiment, your code will be auto-committed with metadata
 * Query your scientific log, e.g. `mthd query metrics.accuracy < 0.8`.
 
 ```python
-from mthd import commit
+from mthd import commit, Run
 from pydantic import BaseModel
 
 class Hypers(BaseModel):
@@ -39,15 +39,18 @@ class Metrics(BaseModel):
     accuracy: float
 
 
-@commit(hypers="hypers")
-def my_experiment(hypers: Hypers) -> Metrics:
-    ...
-    # experiment
+@commit
+def my_experiment(run: Run) -> Metrics:
     ...
 
-    metrics = Metrics(...)
+    run.set_hyperparameters({ ... })
 
-    return metrics
+    ...
+
+    run.set_metrics({ ... })
+
+if __name__ == "__main__":
+    my_experiment()
 ```
 
 Then run your experiment:
