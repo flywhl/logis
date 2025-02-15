@@ -5,7 +5,7 @@ import jmespath
 from jmespath.parser import ParsedResult
 from pydantic import BaseModel
 
-from mthd.domain.git import ExperimentCommit
+from logis.domain.git import ExperimentCommit
 
 # SimpleQueryOp = Literal[">", "<", ">=", "<=", "=="]
 # SimpleQueryValue = str | int | float
@@ -31,9 +31,9 @@ class Query(BaseModel):
     def where(field: str, op: SimpleQueryOp, value: SimpleQueryValue) -> "Query":
         """Create a query that filters on a field value.
 
-        $ mthd viz "accuracy from ['lr', 'batch_size']"
+        $ logis viz "accuracy from ['lr', 'batch_size']"
 
-        $ mthd query "accuracy > 0.9"
+        $ logis query "accuracy > 0.9"
 
         Example:
             Query.where("accuracy", ">", 0.9)

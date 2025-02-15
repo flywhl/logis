@@ -3,11 +3,11 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from mthd.domain.experiment import ExperimentRun
-from mthd.domain.git import Commit
-from mthd.domain.query import Query
-from mthd.service.git import GitService
-from mthd.service.query import QueryService
+from logis.domain.experiment import ExperimentRun
+from logis.domain.git import Commit
+from logis.domain.query import Query
+from logis.service.git import GitService
+from logis.service.query import QueryService
 
 
 @pytest.fixture
@@ -34,7 +34,7 @@ def query_service(git_service: GitService):
     return QueryService(git_service)
 
 
-# @patch("mthd.domain.experiment.ExperimentRun.from_commit")
+# @patch("logis.domain.experiment.ExperimentRun.from_commit")
 def test_execute_query(query_service: QueryService):
     # Setup mock experiments
     # mock_from_commit.side_effect = [
@@ -51,7 +51,7 @@ def test_execute_query(query_service: QueryService):
     assert result.query == query
 
 
-@patch("mthd.domain.experiment.ExperimentRun.from_commit")
+@patch("logis.domain.experiment.ExperimentRun.from_commit")
 def test_execute_query_with_limit(mock_from_commit, query_service: QueryService):
     # Setup mock experiments
     mock_from_commit.side_effect = [
@@ -67,7 +67,7 @@ def test_execute_query_with_limit(mock_from_commit, query_service: QueryService)
     assert result.num_searched == 2
 
 
-@patch("mthd.domain.experiment.ExperimentRun.from_commit")
+@patch("logis.domain.experiment.ExperimentRun.from_commit")
 def test_execute_simple(mock_from_commit, query_service: QueryService):
     # Setup mock experiments
     mock_from_commit.side_effect = [

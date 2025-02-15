@@ -37,7 +37,7 @@ def temp_dir() -> Generator[Path, None, None]:
 
         print(f"Python path: {python_path}")
 
-        # Install mthd package in editable mode in the virtual environment
+        # Install logis package in editable mode in the virtual environment
         subprocess.run(
             [str(python_path), "-m", "pip", "install", "-e", str(Path(old_cwd))],
             check=True,
@@ -50,7 +50,7 @@ def temp_dir() -> Generator[Path, None, None]:
 def create_experiment_file(temp_dir: Path, iteration: int) -> None:
     """Create or update the experiment file with new parameters."""
     content = f"""
-from mthd import commit
+from logis import commit
 from pydantic import BaseModel
 
 class Hyperparameters(BaseModel):
@@ -89,8 +89,8 @@ if __name__ == "__main__":
 def create_run_experiment_file(temp_dir: Path, iteration: int) -> None:
     """Create or update the experiment file using run-based API."""
     content = f"""
-from mthd import commit
-from mthd.decorator import Run
+from logis import commit
+from logis.decorator import Run
 
 @commit
 def train_model(run: Run):
@@ -124,10 +124,10 @@ def test_multiple_experiments(temp_dir: Path):
     # Get the path to the Python executable in the virtual environment
     if os.name == "nt":  # Windows
         python_path = temp_dir / ".venv" / "Scripts" / "python.exe"
-        python_path = temp_dir / ".venv" / "Scripts" / "mthd.exe"
+        python_path = temp_dir / ".venv" / "Scripts" / "logis.exe"
     else:  # Unix-like
         python_path = temp_dir / ".venv" / "bin" / "python"
-        mthd_path = temp_dir / ".venv" / "bin" / "mthd"
+        logis_path = temp_dir / ".venv" / "bin" / "logis"
 
     # Run multiple iterations of the experiment
     for i in range(4):
@@ -156,7 +156,7 @@ def test_multiple_experiments(temp_dir: Path):
 
     # Test querying for experiments with high accuracy
     result = subprocess.run(
-        [str(mthd_path), "query", "metrics.accuracy > 0.8"],
+        [str(logis_path), "query", "metrics.accuracy > 0.8"],
         capture_output=True,
         text=True,
         cwd=temp_dir,
@@ -171,7 +171,7 @@ def test_multiple_experiments(temp_dir: Path):
 
     # Test querying for experiments with low loss
     result = subprocess.run(
-        [str(mthd_path), "query", "metrics.loss < 0.5"],
+        [str(logis_path), "query", "metrics.loss < 0.5"],
         capture_output=True,
         text=True,
         cwd=temp_dir,
@@ -190,10 +190,10 @@ def test_multiple_run_experiments(temp_dir: Path):
     # Get the path to the Python executable in the virtual environment
     if os.name == "nt":  # Windows
         python_path = temp_dir / ".venv" / "Scripts" / "python.exe"
-        mthd_path = temp_dir / ".venv" / "Scripts" / "mthd.exe"
+        logis_path = temp_dir / ".venv" / "Scripts" / "logis.exe"
     else:  # Unix-like
         python_path = temp_dir / ".venv" / "bin" / "python"
-        mthd_path = temp_dir / ".venv" / "bin" / "mthd"
+        logis_path = temp_dir / ".venv" / "bin" / "logis"
 
     # Run multiple iterations of the experiment
     for i in range(4):
@@ -222,7 +222,7 @@ def test_multiple_run_experiments(temp_dir: Path):
 
     # Test querying for experiments with high accuracy
     result = subprocess.run(
-        [str(mthd_path), "query", "metrics.accuracy > 0.8"],
+        [str(logis_path), "query", "metrics.accuracy > 0.8"],
         capture_output=True,
         text=True,
         cwd=temp_dir,
@@ -237,7 +237,7 @@ def test_multiple_run_experiments(temp_dir: Path):
 
     # Test querying for experiments with low loss
     result = subprocess.run(
-        [str(mthd_path), "query", "metrics.loss < 0.5"],
+        [str(logis_path), "query", "metrics.loss < 0.5"],
         capture_output=True,
         text=True,
         cwd=temp_dir,

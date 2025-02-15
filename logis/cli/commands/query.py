@@ -5,7 +5,7 @@ import click
 from dishka import FromDishka
 from rich.console import Console
 
-from mthd.service.query import QueryService
+from logis.service.query import QueryService
 
 
 @click.argument("query", type=str)

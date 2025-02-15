@@ -8,11 +8,11 @@ from uuid import uuid4
 
 from pydantic import UUID4, Field
 
-from mthd.config import BODY_METADATA_SEPARATOR, SUMMARY_BODY_SEPARATOR
-from mthd.util.model import Model
+from logis.config import BODY_METADATA_SEPARATOR, SUMMARY_BODY_SEPARATOR
+from logis.util.model import Model
 
 if TYPE_CHECKING:
-    from mthd.domain.git import Commit
+    from logis.domain.git import Commit
 
 logger = logging.getLogger(__name__)
 

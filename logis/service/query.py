@@ -1,8 +1,8 @@
 from typing import Optional
 
-from mthd.domain.git import ExperimentCommit
-from mthd.domain.query import Query, QueryResult, SimpleQueryOp, SimpleQueryValue
-from mthd.service.git import GitService
+from logis.domain.git import ExperimentCommit
+from logis.domain.query import Query, QueryResult, SimpleQueryOp, SimpleQueryValue
+from logis.service.git import GitService
 
 
 class QueryService:

@@ -2,8 +2,8 @@ import click
 
 from dishka.integrations.click import setup_dishka
 
-from mthd.cli.commands.query import query
-from mthd.util.di import DI
+from logis.cli.commands.query import query
+from logis.util.di import DI
 
 
 def start():

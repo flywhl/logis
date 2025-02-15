@@ -8,11 +8,11 @@ from pydantic import BaseModel
 from rich.console import Console
 from rich.padding import Padding
 
-from mthd.domain.experiment import ExperimentRun
-from mthd.domain.git import StageStrategy
-from mthd.error import MthdError
-from mthd.service.git import GitService
-from mthd.util.di import DI
+from logis.domain.experiment import ExperimentRun
+from logis.domain.git import StageStrategy
+from logis.error import LogisError
+from logis.service.git import GitService
+from logis.util.di import DI
 
 
 @dataclass
@@ -33,13 +33,13 @@ class Run:
     @property
     def hyperparameters(self) -> dict:
         if not self._hypers:
-            raise MthdError("Hyperparameters not set")
+            raise LogisError("Hyperparameters not set")
         return self._hypers
 
     @property
     def metrics(self) -> dict:
         if not self._metrics:
-            raise MthdError("Hyperparameters not set")
+            raise LogisError("Hyperparameters not set")
         return self._metrics
 
 
@@ -101,17 +101,17 @@ def commit(
                 metrics = func(*args, **kwargs)
 
                 if run.hyperparameters is None:
-                    raise MthdError("When using context, hyperparameters must be set via the Context object")
+                    raise LogisError("When using context, hyperparameters must be set via the Context object")
                 if run.metrics is None:
-                    raise MthdError("When using context, metrics must be set via the Context object")
+                    raise LogisError("When using context, metrics must be set via the Context object")
             else:
                 metrics = func(*args, **kwargs)
 
                 hyperparameters = cast(BaseModel, kwargs.get(hypers, None))
                 if not hyperparameters:
-                    raise MthdError("When not using context, hyperparameters must be provided as function arguments")
+                    raise LogisError("When not using context, hyperparameters must be provided as function arguments")
                 if not isinstance(metrics, BaseModel):
-                    raise MthdError("When not using context, metrics must be returned as a BaseModel")
+                    raise LogisError("When not using context, metrics must be returned as a BaseModel")
 
                 run.set_hyperparameters(hyperparameters.model_dump())
                 run.set_metrics(metrics.model_dump())
@@ -128,7 +128,7 @@ def commit(
                 console = Console()
                 console.print("Generating commit with message:\n")
                 console.print(Padding(message.render(), pad=(0, 0, 0, 4)))  # Indent by 4 spaces.
-                if os.getenv("MTHD_DRY_RUN") == "1":
+                if os.getenv("logis_DRY_RUN") == "1":
                     console.print("\nDry run enabled. Not committing changes.")
                 else:
                     git_service.stage_and_commit(message.render())
@@ -143,7 +143,7 @@ def commit(
 
 
 if __name__ == "__main__":
-    os.environ["MTHD_DRY_RUN"] = "1"
+    os.environ["LOGIS_DRY_RUN"] = "1"
 
     class Hyperparameters(BaseModel):
         a: int

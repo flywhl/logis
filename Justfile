@@ -12,8 +12,8 @@ fix:
     uv run ruff check --fix
 
 lint:
-    uv run ruff check mthd
-    uv run pyright mthd
+    uv run ruff check logis
+    uv run pyright logis
 
 lint-file file:
     - ruff {{file}}

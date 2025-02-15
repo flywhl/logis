@@ -2,8 +2,8 @@ from typing import Optional
 
 import git
 
-from mthd.domain.experiment import CommitKind
-from mthd.domain.git import Commit, StageStrategy
+from logis.domain.experiment import CommitKind
+from logis.domain.git import Commit, StageStrategy
 
 
 class GitService:

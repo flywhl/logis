@@ -1,6 +1,6 @@
 <div align="center">
   
-  ![logo](https://github.com/user-attachments/assets/cb3ddb4f-5f40-4231-9efe-29e045705dda)
+  ![logo](https://github.com/user-attachments/assets/70bdda50-51ca-453e-9098-69d6668924fd)
 
   [Discord](https://discord.gg/kTkF2e69fH) • [Website](https://flywhl.dev) • [Installation](#installation)
   <br/>
@@ -9,23 +9,23 @@
 
 ## Features
 
-`mthd` turns your commit history into a searchable scientific log.
+`logis` turns your commit history into a searchable scientific log.
 
 Every time you run an experiment, your code will be auto-committed with metadata in the commit message.
 
 
 ## Installation
 
-* `uv add mthd`
+* `uv add logis`
 
 ## Usage
 
 * Put the `@commit` decorator on your experiment function.
-* `mthd` will store hyperparameters and metrics as metadata in the commit message.
-* Query your scientific log, e.g. `mthd query metrics.accuracy < 0.8`.
+* `logis` will store hyperparameters and metrics as metadata in the commit message.
+* Query your scientific log, e.g. `logis query metrics.accuracy < 0.8`.
 
 ```python
-from mthd import commit, Run
+from logis import commit, Run
 
 @commit
 def my_experiment(run: Run) -> Metrics:
@@ -76,7 +76,7 @@ Generating commit with message:
 Finally, query for relevant commits:
 
 ```
-$ mthd query metrics.accuracy > 0.8
+$ logis query metrics.accuracy > 0.8
 
 Found 1 commit(s):
 
@@ -86,8 +86,8 @@ Found 1 commit(s):
 
 ## Development
 
-* `git clone https://github.com/flywhl/mthd.git`
-* `cd mthd`
+* `git clone https://github.com/flywhl/logis.git`
+* `cd logis`
 * `uv sync`
 * `just test`
 

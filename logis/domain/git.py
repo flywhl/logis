@@ -4,8 +4,8 @@ from typing import Optional
 
 import git
 
-from mthd.domain.experiment import ExperimentRun, SemanticMessage
-from mthd.util.model import Model
+from logis.domain.experiment import ExperimentRun, SemanticMessage
+from logis.util.model import Model
 
 
 class Commit(Model):

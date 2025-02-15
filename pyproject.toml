@@ -1,5 +1,5 @@
 [project]
-name = "mthd"
+name = "logis"
 description = "Git-based experiment tracking with semantic metadata."
 authors = [
     { name = "Rory Byrne", email = "rory@rory.bio" }
@@ -34,13 +34,13 @@ readme = "README.md"
 dynamic = ["version"]
 
 [project.urls]
-Homepage = "https://github.com/flywhl/mthd"
-Repository = "https://github.com/flywhl/mthd"
-Documentation = "https://github.com/flywhl/mthd#readme"
-"Bug Tracker" = "https://github.com/flywhl/mthd/issues"
+Homepage = "https://github.com/flywhl/logis"
+Repository = "https://github.com/flywhl/logis"
+Documentation = "https://github.com/flywhl/logis#readme"
+"Bug Tracker" = "https://github.com/flywhl/logis/issues"
 
 [project.scripts]
-mthd = "mthd.cli.app:start"
+logis = "logis.cli.app:start"
 
 [build-system]
 requires = ["hatchling", "hatch-vcs"]
@@ -60,13 +60,13 @@ dev-dependencies = [
 ]
 
 [tool.ruff]
-src = ["mthd"]
+src = ["logis"]
 line-length = 120
 
 [tool.ruff.lint]
 extend-select = ["I"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["mthd"]
+known-first-party = ["logis"]
 relative-imports-order = "closest-to-furthest"
 lines-between-types = 1

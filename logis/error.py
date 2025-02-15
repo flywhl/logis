@@ -1,2 +1,2 @@
-class MthdError(Exception):
+class LogisError(Exception):
     """Something went wrong."""

@@ -3,10 +3,10 @@ from typing import Type, TypeVar
 from dishka import Provider, Scope, make_container, provide
 from git import Repo
 
-from mthd.service.codebase import CodebaseService
-from mthd.service.experiment import ExperimentService
-from mthd.service.git import GitService
-from mthd.service.query import QueryService
+from logis.service.codebase import CodebaseService
+from logis.service.experiment import ExperimentService
+from logis.service.git import GitService
+from logis.service.query import QueryService
 
 T = TypeVar("T")
 
