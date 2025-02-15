@@ -29,14 +29,15 @@ from logis import commit, Run
 
 @commit
 def my_experiment(run: Run) -> Metrics:
-    ...
+
+    # ... experiment stuff
 
     run.set_hyperparameters({
         "lr": 0.001,
         "epochs": 100,
     })
 
-    ...
+    # ... more experiment stuff
 
     run.set_metrics({
         "accuracy": 0.9,
