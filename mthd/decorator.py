@@ -31,11 +31,15 @@ class Run:
         self._metrics = metrics
 
     @property
-    def hyperparameters(self) -> Optional[dict]:
+    def hyperparameters(self) -> dict:
+        if not self._hypers:
+            raise MthdError("Hyperparameters not set")
         return self._hypers
 
     @property
-    def metrics(self) -> Optional[dict]:
+    def metrics(self) -> dict:
+        if not self._metrics:
+            raise MthdError("Hyperparameters not set")
         return self._metrics
 
 
@@ -90,19 +94,16 @@ def commit(
         def wrapper(*args, **kwargs):
             di = DI()
             git_service = di[GitService]
+            run = Run()
 
             if not implicit:
-                context = Run()
-                args = [context] + list(args)
+                args = [run] + list(args)
                 metrics = func(*args, **kwargs)
 
-                if context.hyperparameters is None:
+                if run.hyperparameters is None:
                     raise MthdError("When using context, hyperparameters must be set via the Context object")
-                if context.metrics is None:
+                if run.metrics is None:
                     raise MthdError("When using context, metrics must be set via the Context object")
-
-                hyper_dict = context.hyperparameters
-                metric_dict = context.metrics
             else:
                 metrics = func(*args, **kwargs)
 
@@ -112,13 +113,13 @@ def commit(
                 if not isinstance(metrics, BaseModel):
                     raise MthdError("When not using context, metrics must be returned as a BaseModel")
 
-                hyper_dict = hyperparameters.model_dump()
-                metric_dict = metrics.model_dump()
+                run.set_hyperparameters(hyperparameters.model_dump())
+                run.set_metrics(metrics.model_dump())
 
             experiment = ExperimentRun(
                 experiment=func.__name__,
-                hyperparameters=hyper_dict,
-                metrics=metric_dict,
+                hyperparameters=run.hyperparameters,
+                metrics=run.metrics,
             )
             message = experiment.as_commit_message(template=template)
 
