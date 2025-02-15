@@ -26,28 +26,21 @@ Every time you run an experiment, your code will be auto-committed with metadata
 
 ```python
 from mthd import commit, Run
-from pydantic import BaseModel
-
-class Hypers(BaseModel):
-
-    lr: float
-    epochs: int
-
-
-class Metrics(BaseModel):
-
-    accuracy: float
-
 
 @commit
 def my_experiment(run: Run) -> Metrics:
     ...
 
-    run.set_hyperparameters({ ... })
+    run.set_hyperparameters({
+        "lr": 0.001,
+        "epochs": 100,
+    })
 
     ...
 
-    run.set_metrics({ ... })
+    run.set_metrics({
+        "accuracy": 0.9,
+    })
 
 if __name__ == "__main__":
     my_experiment()
