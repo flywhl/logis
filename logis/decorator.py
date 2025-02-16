@@ -128,7 +128,7 @@ def commit(
                 console = Console()
                 console.print("Generating commit with message:\n")
                 console.print(Padding(message.render(), pad=(0, 0, 0, 4)))  # Indent by 4 spaces.
-                if os.getenv("logis_DRY_RUN") == "1":
+                if os.getenv("LOGIS_DRY_RUN") == "1":
                     console.print("\nDry run enabled. Not committing changes.")
                 else:
                     git_service.stage_and_commit(message.render())
