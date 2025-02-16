@@ -45,6 +45,19 @@ def my_experiment(run: Run) -> Metrics:
 
 if __name__ == "__main__":
     my_experiment()
+
+# --- Or use the implicit API
+
+@commit(implicit=True)
+def other_experiment(hypers: Hypers) -> Metrics:
+
+    # ... experiment stuff
+
+    metrics = Metrics(accuracy=0.9)
+    return metrics
+
+if __name__ == "__main__":
+    other_experiment(Hypers(...))
 ```
 
 Then run your experiment:
@@ -77,11 +90,13 @@ Generating commit with message:
 Finally, query for relevant commits:
 
 ```
+
 $ logis query metrics.accuracy > 0.8
 
 Found 1 commit(s):
 
     af6cd7
+
 ```
 
 
